@@ -72,7 +72,7 @@ forget-connection () {
 	fi
 
 	chosen=${chosen:3}
-	sure=$(echo -e "  Yes\n  No" | wofi --dmenu --insensitive --prompt "¿Forget ${chosen}?")
+	sure=$(echo -e "  Yes\n  No" | wofi --dmenu --insensitive --prompt "Forget ${chosen}?")
 
 	if [[ "$sure" =~ ^ ]]; then
 		nmcli connection delete id $chosen

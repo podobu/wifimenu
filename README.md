@@ -26,4 +26,4 @@ wofi style is not include.
 
 - NetworkManager
 - wofi
-- It uses Nerd Fonts characters. [Download a font](https://www.nerdfonts.com/) or change the characters.
+- It uses Nerd Fonts characters. [Download a font](https://www.nerdfonts.com/) or change the characters
