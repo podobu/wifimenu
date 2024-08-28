@@ -120,7 +120,7 @@ print $1 "  " $3
 
 chosen=$(echo -e "$(get-prelist)${wifi_list:+\n}$wifi_list" | wofi --dmenu --insensitive --prompt "Wi-Fi SSID:")
 
-if [ "$chosen" = "" ]; then
+if [ -z "$chosen" ]; then
 	exit
 elif [[ "$chosen" =~ ^󰖩 ]]; then
 	nmcli radio wifi on
