@@ -2,9 +2,9 @@
 
 A simple bash script to connect to a Wi-Fi network using nmli and wofi.
 
-![img-network.png](./img-network.png)
-![img-enable.png](./img-enable.png)
-![img-pass.png](./img-pass.png)
+![img-networks.png](./Previews/img-networks.png)
+![img-enable.png](./Previews/img-enable.png)
+![img-pass.png](./Previews/img-pass.png)
 
 wofi style is not include.
 
