@@ -264,7 +264,7 @@ tr_forget_connection_prompt="Connection to forget:"
 tr_forget_connection_sure_prompt_1="Forget"
 tr_forget_connection_sure_prompt_2="?"
 
-# Not to edit (at least you want to change Nerd Font characters, but change all equal characters in the script)
+# Not to edit (unless you want to change Nerd Font characters, but change all equal characters in the script)
 submenu_message="  $tr_submenu_message"
 submenu_close_message="  $tr_submenu_close_message"
 disable_message="󰖪  $tr_disable_message"
