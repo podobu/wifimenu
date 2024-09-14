@@ -56,7 +56,7 @@ This program is licensed under GPL-3.0-or-later.
 
 about () {
 	echo -en "\
-wifimenu 2.0
+wifimenu 2.1
 Copyright © 2024 Jesús Arenas
 License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
 "
@@ -66,41 +66,42 @@ License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
 display-menu () {
 	# You can edit launcher options or add more launchers
 	form=$1
+	prompt="$2"
 	
 	case $launcher in
 		"wofi")
 			case $form in
-				1) echo "wofi --dmenu --insensitive --prompt" ;;
-				2) echo "wofi --dmenu --prompt" ;;
-				3) echo "wofi --dmenu --password --prompt" ;;
+				1) wofi --dmenu --insensitive --prompt "$prompt" ;;
+				2) wofi --dmenu --prompt "$prompt" ;;
+				3) wofi --dmenu --password --prompt "$prompt" ;;
 			esac
 			;;
 		"rofi")
 			case $form in
-				1) echo "rofi -dmenu -i -p" ;;
-				2) echo "rofi -dmenu -p" ;;
-				3) echo "rofi -dmenu -password -p" ;;
+				1) rofi -dmenu -i -p "$prompt" ;;
+				2) rofi -dmenu -p "$prompt" ;;
+				3) rofi -dmenu -password -p "$prompt" ;;
 			esac
 			;;
 		"wmenu")
 			case $form in
-				1) echo "wmenu -l 10 -i -p" ;;
-				2) echo "wmenu -l 10 -p" ;;
-				3) echo "wmenu -l 10 -P -p" ;;
+				1) wmenu -l 10 -i -p "$prompt" ;;
+				2) wmenu -l 10 -p "$prompt" ;;
+				3) wmenu -l 10 -P -p "$prompt" ;;
 			esac
 			;;
 		"dmenu")
 			case $form in
-				1) echo "dmenu -l 10 -i -p" ;;
-				2) echo "dmenu -l 10 -p" ;;
-				3) echo "dmenu -l 10 -p" ;; # Cannot hide the password
+				1) dmenu -l 10 -i -p "$prompt" ;;
+				2) dmenu -l 10 -p "$prompt" ;;
+				3) dmenu -l 10 -p "$prompt" ;; # Cannot hide the password
 			esac
 			;;
 		"bemenu")
 			case $form in
-				1) echo "bemenu --list 10 --ignorecase --prompt" ;;
-				2) echo "bemenu --list 10 --prompt" ;;
-				3) echo "bemenu --list 10 --password indicator --prompt" ;;
+				1) bemenu --list 10 --ignorecase --prompt "$prompt" ;;
+				2) bemenu --list 10 --prompt "$prompt" ;;
+				3) bemenu --list 10 --password "indicator" --prompt "$prompt" ;;
 			esac
 			;;
 		*)
@@ -115,16 +116,16 @@ ask-password () {
 	wifi_password="󰛐"
 	until [[ -z "$wifi_password" || "$wifi_password" =~ ^[^󰛑󰛐] ]]; do
 		if [[ "$wifi_password" =~ ^󰛑 ]]; then
-			wifi_password=$(echo -e "󰛐${middle_option}\n" | $(display-menu 3) "$tr_ask_password_prompt")
+			wifi_password=$(echo -e "󰛐${middle_option}\n" | display-menu 3 "$tr_ask_password_prompt")
 		else
-			wifi_password=$(echo -e "󰛑${middle_option}\n" | $(display-menu 2) "$tr_ask_password_prompt")
+			wifi_password=$(echo -e "󰛑${middle_option}\n" | display-menu 2 "$tr_ask_password_prompt")
 		fi
 	done
 	echo "$wifi_password"
 }
 
 select-interface () {
-	chosen=$( (for (( i = 0; i < ${#interfaces[@]}; i++ )); do echo "󰾲  ${interfaces[$i]}" ; done; echo "") | $(display-menu 1) "$tr_select_interface_prompt")
+	chosen=$( (for (( i = 0; i < ${#interfaces[@]}; i++ )); do echo "󰾲  ${interfaces[$i]}" ; done; echo "") | display-menu 1 "$tr_select_interface_prompt")
 
 	if [ -z "$chosen" ]; then
 		exit
@@ -136,7 +137,7 @@ select-interface () {
 }
 
 connect-hidden () {
-	wifi_name=$(echo ""| $(display-menu 2) "$tr_connect_hidden_prompt")
+	wifi_name=$(echo ""| display-menu 2 "$tr_connect_hidden_prompt")
 
 	if [ -z "$wifi_name" ]; then
 		exit
@@ -171,7 +172,7 @@ forget-connection () {
 		connections_list[$i]="󰑩  ${connections_list[$i]}"
 	done
 
-	chosen=$( (for (( i = 0; i < ${#connections_list[@]}; i++ )); do echo -e "${connections_list[$i]}" ; done; echo "") | cut --delimiter=$'\0' --fields=1 | $(display-menu 1) "$tr_forget_connection_prompt")
+	chosen=$( (for (( i = 0; i < ${#connections_list[@]}; i++ )); do echo -e "${connections_list[$i]}" ; done; echo "") | cut --delimiter=$'\0' --fields=1 | display-menu 1 "$tr_forget_connection_prompt")
 
 	if [ -z "$chosen" ]; then
 		exit
@@ -179,7 +180,7 @@ forget-connection () {
 		return
 	fi
 
-	sure=$(echo -e "\n" | $(display-menu 1) "$tr_forget_connection_sure_prompt_1 ${chosen:3}$tr_forget_connection_sure_prompt_2")
+	sure=$(echo -e "\n" | display-menu 1 "$tr_forget_connection_sure_prompt_1 ${chosen:3}$tr_forget_connection_sure_prompt_2")
 
 	if [ -z "$sure" ]; then
 		exit
@@ -306,7 +307,7 @@ while [ -n "$1" ]; do
 		"--rofi") launcher="rofi" ;;
 		"--wmenu") launcher="wmenu" ;;
 		"--dmenu") launcher="dmenu" ;;
-		"--bmenu") launcher="bmenu" ;;
+		"--bemenu") launcher="bemenu" ;;
 		*) echo "$(basename $0): Bad option given. See usage with -h or --help." >&2 ; exit 1 ;;
 	esac
 	shift
@@ -343,7 +344,7 @@ while true; do
 
 	fi
 
-	chosen=$(echo -e "$(get-main-options)${scan:+${wifi_list:+\n}$wifi_list}" | $(display-menu 1) "$tr_main_menu_prompt")
+	chosen=$(echo -e "$(get-main-options)${scan:+${wifi_list:+\n}$wifi_list}" | display-menu 1 "$tr_main_menu_prompt")
 
 	case "$chosen" in
 		'') exit ;;
