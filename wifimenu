@@ -58,6 +58,7 @@ about () {
 	echo -en "\
 wifimenu 2.1
 Copyright © 2024 Jesús Arenas
+Official repository: https://gitlab.com/podobu/wofi-wifi-menu
 License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
 "
 	exit
