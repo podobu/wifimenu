@@ -199,7 +199,7 @@ connect-wifi () {
 	wifi_security=${1:0:1}
 	wifi_ssid=${1:3}
 
-	mapfile -t connections_matching < <( echo "$(nmcli --colors no --get-values NAME connection show)" | grep --color=never --word-regexp "$wifi_ssid" )
+	mapfile -t connections_matching < <( echo "$(nmcli --colors no --get-values NAME connection show)" | grep --color=never --word-regexp --fixed-strings "$wifi_ssid" )
 
 	for (( i = 0; i < ${#connections_matching[@]}; i++ )); do
 		if [ $(nmcli --colors no --get-values connection.interface-name connection show "${connections_matching[$i]}") = "$interface_to_use" ]; then
