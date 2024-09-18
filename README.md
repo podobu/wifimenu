@@ -1,6 +1,6 @@
 # wifimenu
 
-A Bash script to connect to a Wi-Fi network using nmli and a launcher.
+A Bash script to connect to a Wi-Fi network using NetworkManager and a launcher.
 
 ![img-networks.png](./Previews/img-networks.png)
 ![img-networks2.png](./Previews/img-networks2.png)
@@ -23,6 +23,7 @@ Launcher style in the screenshots above is not include.
 - Shows if Wi-Fi network is secure via WPA 1/2
 - Shows signal level visually
 - A submenu to contain all of the above options
+- Translate to your language by modifying script variables
 - Can be use with your preferred launcher:
 	- wofi
 	- rofi
@@ -42,6 +43,26 @@ Launcher style in the screenshots above is not include.
 - NetworkManager
 - At least one of the following launchers: wofi, rofi, wmenu, dmenu, bemenu
 - It uses heavily Nerd Fonts characters. [Download a font](https://www.nerdfonts.com/) or change the characters at your own risk
+
+## Translation
+
+The following variables can be changed in the script to translate the menu text:
+	tr\_scanning\_networks="Scanning networks"
+	tr\_scanning\_networks\_complete="Scanning completed"
+	tr\_submenu\_message="More options"
+	tr\_submenu\_close\_message="Close options"
+	tr\_disable\_message="Disable Wi-Fi"
+	tr\_enable\_message="Enable Wi-Fi"
+	tr\_hidden\_message="Connect to a hidden network"
+	tr\_forget\_message="Forget connection"
+	tr\_interface\_message="Interface:"
+	tr\_main\_menu\_prompt="Wi-Fi SSID:"
+	tr\_select\_interface\_prompt="Interface to use:"
+	tr\_connect\_hidden\_prompt="Network name:"
+	tr\_ask\_password\_prompt="Password:"
+	tr\_forget\_connection\_prompt="Connection to forget:"
+	tr\_forget\_connection\_sure\_prompt\_1="Forget"
+	tr\_forget\_connection\_sure\_prompt\_2="?"
 
 ## Predecessor
 
