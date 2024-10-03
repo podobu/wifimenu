@@ -47,22 +47,25 @@ Launcher style in the screenshots above is not include.
 ## Translation
 
 The following variables can be changed in the script to translate the menu text:
-	tr\_scanning\_networks="Scanning networks"
-	tr\_scanning\_networks\_complete="Scanning completed"
-	tr\_submenu\_message="More options"
-	tr\_submenu\_close\_message="Close options"
-	tr\_disable\_message="Disable Wi-Fi"
-	tr\_enable\_message="Enable Wi-Fi"
-	tr\_hidden\_message="Connect to a hidden network"
-	tr\_forget\_message="Forget connection"
-	tr\_interface\_message="Interface:"
-	tr\_main\_menu\_prompt="Wi-Fi SSID:"
-	tr\_select\_interface\_prompt="Interface to use:"
-	tr\_connect\_hidden\_prompt="Network name:"
-	tr\_ask\_password\_prompt="Password:"
-	tr\_forget\_connection\_prompt="Connection to forget:"
-	tr\_forget\_connection\_sure\_prompt\_1="Forget"
-	tr\_forget\_connection\_sure\_prompt\_2="?"
+
+```bash
+tr_scanning_networks="Scanning networks"
+tr_scanning_networks_complete="Scanning completed"
+tr_submenu_message="More options"
+tr_submenu_close_message="Close options"
+tr_disable_message="Disable Wi-Fi"
+tr_enable_message="Enable Wi-Fi"
+tr_hidden_message="Connect to a hidden network"
+tr_forget_message="Forget connection"
+tr_interface_message="Interface:"
+tr_main_menu_prompt="Wi-Fi SSID:"
+tr_select_interface_prompt="Interface to use:"
+tr_connect_hidden_prompt="Network name:"
+tr_ask_password_prompt="Password:"
+tr_forget_connection_prompt="Connection to forget:"
+tr_forget_connection_sure_prompt_1="Forget"
+tr_forget_connection_sure_prompt_2="?"
+```
 
 ## Predecessor
 
