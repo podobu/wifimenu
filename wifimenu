@@ -13,8 +13,8 @@
 # You should have received a copy of the GNU General Public License along with this program.
 # If not, see <https://www.gnu.org/licenses/>.
 
-usage () {
-	echo -en "\
+print_usage() {
+	echo -n "\
 Usage: $(basename $0) [OPTIONS...]
 
 Displays a menu with a launcher to select a Wi-Fi network.
@@ -32,7 +32,7 @@ Options:
   --bemenu                    Use bemenu launcher.
 
   -h, --help                  Print this help and exit.
-  -v, --version               Print version and exit.
+  -v, --version               Print version and other info and exit.
 
 Nerd Fonts icons are used. A font can be downloaded at:
 https://www.nerdfonts.com/
@@ -45,26 +45,27 @@ About dmenu:
   Hide password button does not work, since dmenu does not support this.
 
 Exit status: 
-  Returns 1 if a bad option is given.
+  Returns 1 if a wrong option is given.
   Returns 2 if no Wi-Fi interface is detected with nmcli.
+            if an unknown interface is given with -i.
   Returns 0 otherwise.
 
 This program is licensed under GPL-3.0-or-later.
 "
-	exit
+	exit 0
 }
 
-about () {
-	echo -en "\
+print_about() {
+	echo -n "\
 wifimenu 2.1
 Copyright © 2024 Jesús Arenas
 Official repository: https://gitlab.com/podobu/wofi-wifi-menu
 License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
 "
-	exit
+	exit 0
 }
 
-display-menu () {
+display_menu() {
 	# You can edit launcher options or add more launchers
 	form=$1
 	prompt="$2"
@@ -106,30 +107,30 @@ display-menu () {
 			esac
 			;;
 		*)
-			echo "$(basename $0): Bad launcher. See variable 'launcher'." >&2
+			echo "$(basename $0): Unknown launcher. See variable 'launcher'." >&2
 			exit 1
 			;;
 	esac
 }
 
-ask-password () {
+ask_password() {
 	middle_option=${1:-}
 	wifi_password="󰛐"
 	until [[ -z "$wifi_password" || "$wifi_password" =~ ^[^󰛑󰛐] ]]; do
 		if [[ "$wifi_password" =~ ^󰛑 ]]; then
-			wifi_password=$(echo -e "󰛐${middle_option}\n" | display-menu 3 "$tr_ask_password_prompt")
+			wifi_password=$(echo -e "󰛐${middle_option}\n" | display_menu 3 "$tr_ask_password_prompt")
 		else
-			wifi_password=$(echo -e "󰛑${middle_option}\n" | display-menu 2 "$tr_ask_password_prompt")
+			wifi_password=$(echo -e "󰛑${middle_option}\n" | display_menu 2 "$tr_ask_password_prompt")
 		fi
 	done
 	echo "$wifi_password"
 }
 
-select-interface () {
-	chosen=$( (for (( i = 0; i < ${#interfaces[@]}; i++ )); do echo "󰾲  ${interfaces[$i]}" ; done; echo "") | display-menu 1 "$tr_select_interface_prompt")
+select_interface() {
+	chosen=$( (for (( i = 0; i < ${#interfaces[@]}; i++ )); do echo "󰾲  ${interfaces[$i]}" ; done; echo "") | display_menu 1 "$tr_select_interface_prompt")
 
 	if [ -z "$chosen" ]; then
-		exit
+		exit 0
 	elif [[ "$chosen" =~ ^ ]]; then
 		return
 	else
@@ -137,19 +138,19 @@ select-interface () {
 	fi
 }
 
-connect-hidden () {
-	wifi_name=$(echo ""| display-menu 2 "$tr_connect_hidden_prompt")
+connect_hidden() {
+	wifi_name=$(echo ""| display_menu 2 "$tr_connect_hidden_prompt")
 
 	if [ -z "$wifi_name" ]; then
-		exit
+		exit 0
 	elif [[ "$wifi_name" =~ ^ ]]; then
 		return
 	fi
 
-	wifi_password=$(ask-password "\n")
+	wifi_password=$(ask_password "\n")
 
 	if [ -z "$wifi_password" ]; then
-		exit
+		exit 0
 	elif [[ "$wifi_password" =~ ^ ]]; then
 		wifi_password=""
 	elif [[ "$wifi_password" =~ ^ ]]; then
@@ -159,8 +160,7 @@ connect-hidden () {
 	nmcli device wifi connect "$wifi_name" hidden yes password "$wifi_password"
 }
 
-forget-connection () {
-
+forget_connection() {
 	mapfile -t connections_list < <( echo "$(nmcli --colors no --get-values TYPE,NAME connection show)" | awk -F ':' '$1 == "802-11-wireless" {print $2}' )
 
 	for (( i = 0; i < ${#connections_list[@]}; i++ )); do
@@ -173,18 +173,18 @@ forget-connection () {
 		connections_list[$i]="󰑩  ${connections_list[$i]}"
 	done
 
-	chosen=$( (for (( i = 0; i < ${#connections_list[@]}; i++ )); do echo -e "${connections_list[$i]}" ; done; echo "") | cut --delimiter=$'\0' --fields=1 | display-menu 1 "$tr_forget_connection_prompt")
+	chosen=$( (for (( i = 0; i < ${#connections_list[@]}; i++ )); do echo -e "${connections_list[$i]}" ; done; echo "") | cut --delimiter=$'\0' --fields=1 | display_menu 1 "$tr_forget_connection_prompt")
 
 	if [ -z "$chosen" ]; then
-		exit
+		exit 0
 	elif [[ "$chosen" =~ ^ ]]; then
 		return
 	fi
 
-	sure=$(echo -e "\n" | display-menu 1 "$tr_forget_connection_sure_prompt_1 ${chosen:3}$tr_forget_connection_sure_prompt_2")
+	sure=$(echo -e "\n" | display_menu 1 "$tr_forget_connection_sure_prompt_1 ${chosen:3}$tr_forget_connection_sure_prompt_2")
 
 	if [ -z "$sure" ]; then
-		exit
+		exit 0
 	elif [[ "$sure" =~ ^ ]]; then
 		for (( i = 0; i < ${#connections_list[@]}; i++ )); do
 			if [ "$chosen" = "$(echo -e "${connections_list[$i]}" | cut --delimiter=$'\0' --fields=1)" ]; then
@@ -195,7 +195,7 @@ forget-connection () {
 	fi
 }
 
-connect-wifi () {
+connect_wifi() {
 	wifi_security=${1:0:1}
 	wifi_ssid=${1:3}
 
@@ -208,24 +208,24 @@ connect-wifi () {
 			else
 				nmcli connection up id "${connections_matching[$i]}" ifname "$interface_to_use"
 			fi
-			exit
+			exit 0
 		fi
 	done
 
 	if [[ "$wifi_security" =~ ^[󰤪󰤤󰤡] ]]; then
-		wifi_password=$(ask-password)
+		wifi_password=$(ask_password)
 		if [ -z "$wifi_password" ]; then
-			exit
+			exit 0
 		elif [[ "$wifi_password" =~ ^ ]]; then
 			return
 		fi
 	fi 
 	nmcli device wifi connect "$wifi_ssid" ifname "$interface_to_use" password "$wifi_password"
 
-	exit
+	exit 0
 }
 
-get-main-options () {
+get_main_options() {
 	connection_state=$(nmcli --colors no --get-values WIFI general)
 	[ ${#interfaces[@]} -gt 1 ] && interface_message="󰾲  $tr_interface_message $interface_to_use\n"
 
@@ -293,12 +293,12 @@ scan=1
 # Options
 while [ -n "$1" ]; do
 	case "$1" in
-		"-h" | "--help") usage ;;
-		"-v" | "--version") about ;;
+		"-h" | "--help") print_usage ;;
+		"-v" | "--version") print_about ;;
 		"-s" | "--submenu") submenu=1 ;;
 		"-i" | "--interface")
 			if [ ! $(nmcli --colors no --get-values TYPE,DEVICE device status | awk -F ':' '$1 == "wifi" {print $2}' | grep --word-regexp "$2") ]; then
-				echo "$(basename $0): Bad interface given: $2" >&2
+				echo "$(basename $0): Unknown interface given: $2" >&2
 				exit 2
 			fi
 			interface_to_use="$2"
@@ -309,7 +309,7 @@ while [ -n "$1" ]; do
 		"--wmenu") launcher="wmenu" ;;
 		"--dmenu") launcher="dmenu" ;;
 		"--bemenu") launcher="bemenu" ;;
-		*) echo "$(basename $0): Bad option given. See usage with -h or --help." >&2 ; exit 1 ;;
+		*) echo "$(basename $0): Wrong option given. See usage with -h or --help." >&2 ; exit 1 ;;
 	esac
 	shift
 done
@@ -345,18 +345,18 @@ while true; do
 
 	fi
 
-	chosen=$(echo -e "$(get-main-options)${scan:+${wifi_list:+\n}$wifi_list}" | display-menu 1 "$tr_main_menu_prompt")
+	chosen=$(echo -e "$(get_main_options)${scan:+${wifi_list:+\n}$wifi_list}" | display_menu 1 "$tr_main_menu_prompt")
 
 	case "$chosen" in
-		'') exit ;;
+		'') exit 0 ;;
 		""*) unset scan ;;
 		""*) scan=1 ;;
-		"󰖩"*) nmcli radio wifi on ; exit ;;
-		"󰖪"*) nmcli radio wifi off ; exit ;;
-		"󰾲"*) select-interface ;;
-		"󰛐"*) connect-hidden ;;
-		""*) forget-connection ;;
-		*) connect-wifi "$chosen" ;;
+		"󰖩"*) nmcli radio wifi on ; exit 0 ;;
+		"󰖪"*) nmcli radio wifi off ; exit 0 ;;
+		"󰾲"*) select_interface ;;
+		"󰛐"*) connect_hidden ;;
+		""*) forget_connection ;;
+		*) connect_wifi "$chosen" ;;
 	esac
 
 done
