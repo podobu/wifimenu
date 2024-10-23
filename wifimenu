@@ -57,7 +57,7 @@ This program is licensed under GPL-3.0-or-later.
 
 print_about() {
 	echo -n "\
-wifimenu 2.3.0
+wifimenu 2.3.1
 Copyright © 2024 Jesús Arenas
 Official repository: https://github.com/podobu/wifimenu
 License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
@@ -387,7 +387,7 @@ connect_wifi() {
 
 menu_submenu() {
 	while true; do
-		chosen="$(echo -e "$submenu_close_message\n$disable_message\n${interfaces[1]:+"󰾲  $tr_interface_message $interface_to_use\n"}$known_connections_message\n$hidden_message" | display_menu 1 "$tr_submenu_message")"
+		chosen="$(echo -e "$submenu_close_message\n$disable_message\n${interfaces[1]:+󰾲  $tr_interface_message ${interface_to_use}\n}$known_connections_message\n$hidden_message" | display_menu 1 "$tr_submenu_message")"
 		case "$chosen" in
 			'') exit 0 ;;
 			""*) return ;;
