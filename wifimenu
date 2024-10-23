@@ -57,7 +57,7 @@ This program is licensed under GPL-3.0-or-later.
 
 print_about() {
 	echo -n "\
-wifimenu 2.3.2
+wifimenu 2.3.3
 Copyright © 2024 Jesús Arenas
 Official repository: https://github.com/podobu/wifimenu
 License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
@@ -387,7 +387,7 @@ connect_wifi() {
 
 menu_submenu() {
 	while true; do
-		chosen="$(echo -e "$disable_message\n${interfaces[1]:+󰾲  $tr_interface_message ${interface_to_use}\n}$known_connections_message\n$hidden_message\n" | display_menu 1 "$tr_submenu_message")"
+		chosen="$(echo -e "$disable_message\n${interfaces[1]:+$interface_message ${interface_to_use}\n}$known_connections_message\n$hidden_message\n" | display_menu 1 "$tr_submenu_message")"
 		case "$chosen" in
 			'') exit 0 ;;
 			""*) return ;;
@@ -412,7 +412,7 @@ menu_main() {
 			if [ -n "$submenu" ]; then
 				options="$submenu_message"
 			else
-				options="$disable_message\n${interfaces[1]:+󰾲  $tr_interface_message ${interface_to_use}\n}$known_connections_message\n$hidden_message"
+				options="$disable_message\n${interfaces[1]:+$interface_message ${interface_to_use}\n}$known_connections_message\n$hidden_message"
 			fi
 
 			echo "$tr_scanning_networks"
@@ -541,6 +541,7 @@ autodns_message="󰖟  $tr_autodns_message"
 address_message="󰀑  $tr_address_message"
 gateway_message="󰳘  $tr_gateway_message"
 forget_message="  $tr_forget_message"
+interface_message="󰾲  $tr_interface_message"
 
 # Options
 while [ -n "$1" ]; do
