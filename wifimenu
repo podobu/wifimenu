@@ -57,9 +57,9 @@ This program is licensed under GPL-3.0-or-later.
 
 print_about() {
 	echo -n "\
-wifimenu 2.2.1
+wifimenu 2.2.2
 Copyright © 2024 Jesús Arenas
-Official repository: https://gitlab.com/podobu/wofi-wifi-menu
+Official repository: https://github.com/podobu/wifimenu
 License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
 "
 	exit 0
