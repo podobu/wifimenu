@@ -46,7 +46,7 @@ Launcher style in the screenshots above is not include.
 The following files are sourced in the corresponding order. If one of the files is found, the following files will not be searched:
 
 1. $XDG\_CONFIG\_HOME/$program\_name/config
-2. $HOME/$program\_name/config
+2. $HOME/.config/$program\_name/config
 3. $HOME/.$program\_name
 
 The variable `program_name` is set to `basename $0`.
