@@ -14,8 +14,8 @@ Launcher style in the screenshots above is not include.
 
 - Enable/Disable Wi-Fi device
 - Select the Wi-Fi interface to use
+- Connection options: forget, DNS, static IP...
 - Connect to a hidden Wi-Fi network
-- Forget known connections
 - Disconnect from the current connected Wi-Fi network
 - Shows if Wi-Fi network is secure via WPA 1/2
 - Shows signal level visually
