@@ -57,7 +57,7 @@ This program is licensed under GPL-3.0-or-later.
 
 print_about() {
 	echo -n "\
-wifimenu 2.3.1
+wifimenu 2.3.2
 Copyright © 2024 Jesús Arenas
 Official repository: https://github.com/podobu/wifimenu
 License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
@@ -387,7 +387,7 @@ connect_wifi() {
 
 menu_submenu() {
 	while true; do
-		chosen="$(echo -e "$submenu_close_message\n$disable_message\n${interfaces[1]:+󰾲  $tr_interface_message ${interface_to_use}\n}$known_connections_message\n$hidden_message" | display_menu 1 "$tr_submenu_message")"
+		chosen="$(echo -e "$disable_message\n${interfaces[1]:+󰾲  $tr_interface_message ${interface_to_use}\n}$known_connections_message\n$hidden_message\n" | display_menu 1 "$tr_submenu_message")"
 		case "$chosen" in
 			'') exit 0 ;;
 			""*) return ;;
@@ -473,7 +473,6 @@ menu_main() {
 tr_scanning_networks="Scanning networks"
 tr_scanning_networks_complete="Scanning completed"
 tr_submenu_message="More options"
-tr_submenu_close_message="Close options"
 tr_disable_message="Disable Wi-Fi"
 tr_enable_message="Enable Wi-Fi"
 tr_known_connections_message="Known connections"
@@ -486,8 +485,6 @@ tr_dns6_message="DNS IPv6"
 tr_autoip_message="Automatic IP configuration"
 tr_autodns_message="Automatic DNS"
 tr_address_message="Addresses"
-tr_menu_ip_config_addresses_prompt="address1/mask,address2/mask,..."
-tr_menu_ip_config_gateway_prompt="New gateway:"
 tr_gateway_message="Gateway:"
 tr_forget_message="Forget connection"
 tr_interface_message="Interface:"
@@ -499,29 +496,14 @@ tr_ask_password_prompt="Password:"
 tr_menu_dns_prompt="New DNS:"
 tr_menu_dns_sure_prompt_1="Remove DNS"
 tr_menu_dns_sure_prompt_2="?"
+tr_menu_ip_config_addresses_prompt="address1/mask,address2/mask,..."
+tr_menu_ip_config_gateway_prompt="New gateway:"
 tr_menu_addresses_prompt="New address:"
 tr_menu_addresses_sure_prompt_1="Remove address"
 tr_menu_addresses_sure_prompt_2="?"
 tr_forget_connection_prompt="Connection to forget:"
 tr_forget_connection_sure_prompt_1="Forget"
 tr_forget_connection_sure_prompt_2="?"
-
-submenu_message="  $tr_submenu_message"
-submenu_close_message="  $tr_submenu_close_message"
-disable_message="󰖪  $tr_disable_message"
-enable_message="󰖩  $tr_enable_message"
-hidden_message="󰛐  $tr_hidden_message"
-known_connections_message="  $tr_known_connections_message"
-autoconnect_message="󱣲  $tr_autoconnect_message"
-ipv4_config_message="󰎭  $tr_ipv4_config_message"
-dns4_message="󰲦  $tr_dns4_message"
-ipv6_config_message="󰎳  $tr_ipv6_config_message"
-dns6_message="󰲪  $tr_dns6_message"
-autoip_message="󰩠  $tr_autoip_message"
-autodns_message="󰖟  $tr_autodns_message"
-address_message="󰀑  $tr_address_message"
-gateway_message="󰳘  $tr_gateway_message"
-forget_message="  $tr_forget_message"
 
 # Detecting Wi-Fi interfaces and add them to the array
 mapfile -t interfaces < <(nmcli --colors no --get-values TYPE,DEVICE device status | awk -F ':' '$1 == "wifi" {print $2}')
@@ -542,6 +524,23 @@ program_name="$(basename $0)"
 { [ -f "${XDG_CONFIG_HOME}/${program_name}/config" ] && . "${XDG_CONFIG_HOME}/${program_name}/config"; } || \
 { [ -f "${HOME}/.config/${program_name}/config" ] && . "${HOME}/.config/${program_name}/config"; } || \
 { [ -f "${HOME}/.${program_name}" ] && . "${HOME}/.${program_name}"; }
+
+submenu_message="  $tr_submenu_message"
+submenu_close_message="  $tr_submenu_close_message"
+disable_message="󰖪  $tr_disable_message"
+enable_message="󰖩  $tr_enable_message"
+hidden_message="󰛐  $tr_hidden_message"
+known_connections_message="  $tr_known_connections_message"
+autoconnect_message="󱣲  $tr_autoconnect_message"
+ipv4_config_message="󰎭  $tr_ipv4_config_message"
+dns4_message="󰲦  $tr_dns4_message"
+ipv6_config_message="󰎳  $tr_ipv6_config_message"
+dns6_message="󰲪  $tr_dns6_message"
+autoip_message="󰩠  $tr_autoip_message"
+autodns_message="󰖟  $tr_autodns_message"
+address_message="󰀑  $tr_address_message"
+gateway_message="󰳘  $tr_gateway_message"
+forget_message="  $tr_forget_message"
 
 # Options
 while [ -n "$1" ]; do
