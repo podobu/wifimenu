@@ -4,10 +4,7 @@ A Bash script to connect to a Wi-Fi network using NetworkManager and a launcher.
 
 ![img-networks.png](./Previews/img-networks.png)
 ![img-networks2.png](./Previews/img-networks2.png)
-![img-interfaces.png](./Previews/img-interfaces.png)
 ![img-enable.png](./Previews/img-enable.png)
-![img-password.png](./Previews/img-password.png)
-![img-forget.png](./Previews/img-forget.png)
 ![img-more.png](./Previews/img-more.png)
 ![img-submenu.png](./Previews/img-submenu.png)
 
@@ -44,40 +41,62 @@ Launcher style in the screenshots above is not include.
 - At least one of the following launchers: wofi, rofi, wmenu, dmenu, bemenu
 - It uses heavily Nerd Fonts characters. [Download a font](https://www.nerdfonts.com/) or change the characters at your own risk
 
-## Translation
+## Translation and customization
 
-The following variables can be changed in the script to translate the menu text:
+The following files are sourced in the corresponding order. If one of the files is found, the following files will not be searched:
+
+1. $XDG\_CONFIG\_HOME/$program\_name/config
+2. $HOME/$program\_name/config
+3. $HOME/.$program\_name
+
+The variable `program_name` is set to `basename $0`.
+
+Any modification of the program can be made in the configuration file to avoid losing modifications when updating the script.
+Command line options overwrite this file.
+
+Some variables of interest may be:
+
+- **launcher**: A string defining the launcher.
+- **submenu**: If set, shows Wi-Fi options in a submenu.
+
+The following variables can be changed in the the configuration file to translate the text:
 
 ```bash
 tr_scanning_networks="Scanning networks"
 tr_scanning_networks_complete="Scanning completed"
 tr_submenu_message="More options"
-tr_submenu_close_message="Close options"
 tr_disable_message="Disable Wi-Fi"
 tr_enable_message="Enable Wi-Fi"
+tr_known_connections_message="Known connections"
 tr_hidden_message="Connect to a hidden network"
+tr_autoconnect_message="Autoconnect"
+tr_ipv4_config_message="DHCP configuration"
+tr_dns4_message="DNS IPv4"
+tr_ipv6_config_message="IPv6 configuration"
+tr_dns6_message="DNS IPv6"
+tr_autoip_message="Automatic IP configuration"
+tr_autodns_message="Automatic DNS"
+tr_address_message="Addresses"
+tr_gateway_message="Gateway:"
 tr_forget_message="Forget connection"
 tr_interface_message="Interface:"
+
 tr_main_menu_prompt="Wi-Fi SSID:"
 tr_select_interface_prompt="Interface to use:"
 tr_connect_hidden_prompt="Network name:"
 tr_ask_password_prompt="Password:"
+tr_menu_dns_prompt="New DNS:"
+tr_menu_dns_sure_prompt_1="Remove DNS"
+tr_menu_dns_sure_prompt_2="?"
+tr_menu_ip_config_addresses_prompt="address1/mask,address2/mask,..."
+tr_menu_ip_config_gateway_prompt="New gateway:"
+tr_menu_addresses_prompt="New address:"
+tr_menu_addresses_sure_prompt_1="Remove address"
+tr_menu_addresses_sure_prompt_2="?"
 tr_forget_connection_prompt="Connection to forget:"
 tr_forget_connection_sure_prompt_1="Forget"
 tr_forget_connection_sure_prompt_2="?"
 ```
-
-## Predecessor
-
-I previously wrote a simpler Bash script that I consider the predecessor of this one, although I called it wofi-wifi-menu. For that reason this script starts from version 2, although the name has changed.
-
-At first, when I thought about writing wofi-wifi-menu, I took inspiration from [this script](https://github.com/ericmurphyxyz/rofi-wifi-menu), but in the end I ended up rewriting it completely.
-
-This is a list of similar scripts that I found at the moment of rewrite this README for version 2, since I don't know who is the original autor:
-- <https://github.com/Macr0Nerd/wofi-wifi-menu?tab=readme-ov-file>
-- <https://github.com/zbaylin/rofi-wifi-menu>
-
-However, this script is completely done by me and the above inspiration was only from the concept (and the previous name, I guess).
 
 ## License
 
