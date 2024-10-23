@@ -351,21 +351,22 @@ connect_hidden() {
 		return
 	fi
 
-	nmcli device wifi connect "$wifi_name" hidden yes password "$wifi_password"
+	nmcli --wait 15 device wifi connect "$wifi_name" hidden yes password "$wifi_password"
 }
 
 connect_wifi() {
 	declare wifi_security="${1:0:1}"
 	declare wifi_ssid="${1:3}"
+	declare -a connections_matching
 
 	mapfile -t connections_matching < <( echo "$(nmcli --colors no --get-values NAME connection show)" | grep --color=never --word-regexp --fixed-strings "$wifi_ssid" )
 
 	for (( i = 0; i < ${#connections_matching[@]}; i++ )); do
-		if [ $(nmcli --colors no --get-values connection.interface-name connection show "${connections_matching[$i]}") = "$interface_to_use" ]; then
+		if [ $(nmcli --get-values connection.interface-name connection show "${connections_matching[$i]}") = "$interface_to_use" ]; then
 			if [[ "$wifi_security" =~ ^ ]]; then
 				nmcli connection down id "${connections_matching[$i]}"
 			else
-				nmcli connection up id "${connections_matching[$i]}" ifname "$interface_to_use"
+				nmcli --wait 15 connection up id "${connections_matching[$i]}" ifname "$interface_to_use"
 			fi
 			exit 0
 		fi
@@ -379,7 +380,7 @@ connect_wifi() {
 			return
 		fi
 	fi 
-	nmcli device wifi connect "$wifi_ssid" ifname "$interface_to_use" password "$wifi_password"
+	nmcli --wait 15 device wifi connect "$wifi_ssid" ifname "$interface_to_use" password "$wifi_password"
 
 	exit 0
 }
@@ -411,7 +412,7 @@ menu_main() {
 			if [ -n "$submenu" ]; then
 				options="$submenu_message"
 			else
-				options="$disable_message\n${interfaces[1]:+"󰾲  $tr_interface_message $interface_to_use\n"}$known_connections_message\n$hidden_message"
+				options="$disable_message\n${interfaces[1]:+󰾲  $tr_interface_message ${interface_to_use}\n}$known_connections_message\n$hidden_message"
 			fi
 
 			echo "$tr_scanning_networks"
