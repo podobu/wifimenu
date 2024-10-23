@@ -15,7 +15,7 @@
 
 print_usage() {
 	echo -n "\
-Usage: $(basename $0) [OPTIONS...]
+Usage: $program_name [OPTIONS...]
 
 Displays a menu with a launcher to select a Wi-Fi network.
 
@@ -57,7 +57,7 @@ This program is licensed under GPL-3.0-or-later.
 
 print_about() {
 	echo -n "\
-wifimenu 2.2.3
+wifimenu 2.3.0
 Copyright © 2024 Jesús Arenas
 Official repository: https://github.com/podobu/wifimenu
 License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
@@ -107,7 +107,7 @@ display_menu() {
 			esac
 			;;
 		*)
-			echo "$(basename $0): Unknown launcher. See variable 'launcher'." >&2
+			echo "$program_name: Unknown launcher. See variable 'launcher'." >&2
 			exit 1
 			;;
 	esac
@@ -469,7 +469,7 @@ menu_main() {
 
 ############################################################ MAIN ############################################################
 
-# For translation or customization (for editing). You can edit the help message in print_usage function too
+# tr_* variables are for translation or customization (for editing in config file, not here!).
 tr_scanning_networks="Scanning networks"
 tr_scanning_networks_complete="Scanning completed"
 tr_submenu_message="More options"
@@ -506,7 +506,6 @@ tr_forget_connection_prompt="Connection to forget:"
 tr_forget_connection_sure_prompt_1="Forget"
 tr_forget_connection_sure_prompt_2="?"
 
-# Not to edit (unless you want to change Nerd Font characters, but then change all equal characters in the script)
 submenu_message="  $tr_submenu_message"
 submenu_close_message="  $tr_submenu_close_message"
 disable_message="󰖪  $tr_disable_message"
@@ -527,16 +526,22 @@ forget_message="  $tr_forget_message"
 # Detecting Wi-Fi interfaces and add them to the array
 mapfile -t interfaces < <(nmcli --colors no --get-values TYPE,DEVICE device status | awk -F ':' '$1 == "wifi" {print $2}')
 if [ -z "${interfaces[0]}" ]; then
-	echo "$(basename $0): No Wi-Fi interfaces detected." >&2
+	echo "$program_name: No Wi-Fi interfaces detected." >&2
 	exit 2
 fi
 
-# Default launcher (for editing)
+# Default launcher (for editing in config file)
 launcher="wofi"
-# Default menu display. Set variable to anything for submenu options (for editing)
+# Default menu display. Set variable to anything for submenu options (for editing in config file)
 submenu=
-# Default interface (edit on your risk, if you know your hardware, or use --interface option instead)
+# Default interface (edit in config file on your risk, if you know your hardware, or use --interface option instead)
 interface_to_use="${interfaces[0]}"
+
+program_name="$(basename $0)"
+
+{ [ -f "${XDG_CONFIG_HOME}/${program_name}/config" ] && . "${XDG_CONFIG_HOME}/${program_name}/config"; } || \
+{ [ -f "${HOME}/.config/${program_name}/config" ] && . "${HOME}/.config/${program_name}/config"; } || \
+{ [ -f "${HOME}/.${program_name}" ] && . "${HOME}/.${program_name}"; }
 
 # Options
 while [ -n "$1" ]; do
@@ -546,7 +551,7 @@ while [ -n "$1" ]; do
 		"-s" | "--submenu") submenu=1 ;;
 		"-i" | "--interface")
 			if [ ! $(nmcli --colors no --get-values TYPE,DEVICE device status | awk -F ':' '$1 == "wifi" {print $2}' | grep --word-regexp "$2") ]; then
-				echo "$(basename $0): Unknown interface given: $2" >&2
+				echo "$program_name: Unknown interface given: $2" >&2
 				exit 2
 			fi
 			interface_to_use="$2"
@@ -557,7 +562,7 @@ while [ -n "$1" ]; do
 		"--wmenu") launcher="wmenu" ;;
 		"--dmenu") launcher="dmenu" ;;
 		"--bemenu") launcher="bemenu" ;;
-		*) echo "$(basename $0): Wrong option given. See usage with -h or --help." >&2 ; exit 1 ;;
+		*) echo "$program_name: Wrong option given. See usage with -h or --help." >&2 ; exit 1 ;;
 	esac
 	shift
 done
