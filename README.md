@@ -15,12 +15,13 @@ Launcher style in the screenshots above is not include.
 - Enable/Disable Wi-Fi device
 - Select the Wi-Fi interface to use
 - Connection options: forget, DNS, static IP...
+- Wireguard support
 - Connect to a hidden Wi-Fi network
 - Disconnect from the current connected Wi-Fi network
 - Shows if Wi-Fi network is secure via WPA 1/2
 - Shows signal level visually
 - A submenu to contain all of the above options
-- Translate to your language by modifying script variables
+- Translate to your language by modifying script variables in a configuration file
 - Can be use with your preferred launcher:
 	- wofi
 	- rofi
@@ -31,7 +32,6 @@ Launcher style in the screenshots above is not include.
 ## Considerations
 
 - Does not show WEP Wi-Fi networks, and probably never will
-- Does not notify about the result of the connection operation, and maybe I will add the option in the future
 - When using this script with dmenu launcher, the botton for hide passwords does not work
 
 ## Dependencies
@@ -58,6 +58,7 @@ Some variables of interest may be:
 
 - **launcher**: A string defining the launcher.
 - **submenu**: If set, shows Wi-Fi options in a submenu.
+- **wireguard**: If set, shows wireguard connections option in the main manu.
 
 The following variables can be changed in the the configuration file to translate the text:
 
@@ -67,8 +68,8 @@ tr_scanning_networks_complete="Scanning completed"
 tr_submenu_message="More options"
 tr_disable_message="Disable Wi-Fi"
 tr_enable_message="Enable Wi-Fi"
+tr_interface_message="Interface:"
 tr_known_connections_message="Known connections"
-tr_hidden_message="Connect to a hidden network"
 tr_autoconnect_message="Autoconnect"
 tr_ipv4_config_message="DHCP configuration"
 tr_dns4_message="DNS IPv4"
@@ -79,11 +80,13 @@ tr_autodns_message="Automatic DNS"
 tr_address_message="Addresses"
 tr_gateway_message="Gateway:"
 tr_forget_message="Forget connection"
-tr_interface_message="Interface:"
+tr_wireguard_message="Wireguard connections"
+tr_wireguard_enable_message="Enable VPN"
+tr_rename_connection_message="Rename connection"
+tr_hidden_message="Connect to a hidden network"
 
 tr_main_menu_prompt="Wi-Fi SSID:"
 tr_select_interface_prompt="Interface to use:"
-tr_connect_hidden_prompt="Network name:"
 tr_ask_password_prompt="Password:"
 tr_menu_dns_prompt="New DNS:"
 tr_menu_dns_sure_prompt_1="Remove DNS"
@@ -96,7 +99,19 @@ tr_menu_addresses_sure_prompt_2="?"
 tr_forget_connection_prompt="Connection to forget:"
 tr_forget_connection_sure_prompt_1="Forget"
 tr_forget_connection_sure_prompt_2="?"
+tr_rename_connection_prompt="New name:"
+tr_connect_hidden_prompt="Network name:"
 ```
+
+## Wireguard support
+
+The wireguard connection must already exist. To import a wireguard profile FILE.conf:
+```sh
+sudo nmcli connection import type wireguard file /PATH/TO/FILE.conf
+```
+Replace `/PATH/TO/FILE.conf` with the actual path of your *.conf* wireguard file.
+
+To learn more about wireguard configuration in NetworkManager, see: <https://blogs.gnome.org/thaller/2019/03/15/wireguard-in-networkmanager/>
 
 ## License
 

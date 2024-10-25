@@ -21,9 +21,11 @@ Displays a menu with a launcher to select a Wi-Fi network.
 
 Options:
   -s, --submenu               Show Wi-Fi options in a submenu.
-
+  -S, --no-submenu            Do not show Wi-Fi options in a submenu.
   -i INTERFACE
   --interface INTERFACE       Start using Wi-Fi interface INTERFACE.
+  -w, --wireguard             Show wireguard connections option.
+  -W, --no-wireguard          Do not show wireguard connections option.
 
   --wofi                      Use wofi launcher (default).
   --rofi                      Use rofi launcher.
@@ -57,7 +59,7 @@ This program is licensed under GPL-3.0-or-later.
 
 print_about() {
 	echo -n "\
-wifimenu 2.3.3
+wifimenu 2.4.0
 Copyright © 2024 Jesús Arenas
 Official repository: https://github.com/podobu/wifimenu
 License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
@@ -66,11 +68,10 @@ License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
 }
 
 display_menu() {
-	# launcher options or add more launchers can be added
 	declare form=$1
 	declare prompt="$2"
 	
-	case $launcher in
+	case "$launcher" in
 		"wofi")
 			case $form in
 				1) wofi --dmenu --insensitive --prompt "$prompt" ;;
@@ -146,7 +147,7 @@ menu_addresses() {
 	declare sure
 	while true; do
 		addresses_list=($(nmcli --get-values ipv${ipv}.addresses connection show $connection | sed 's/,//g'))
-		chosen="$( (IFS=$'\n'; echo -e "${addresses_list[*]}${addresses_list:+\n}") | display_menu 1 "$tr_menu_addresses_prompt")"
+		chosen="$( (for i in "${addresses_list[@]}"; do echo "$i"; done; echo "") | display_menu 1 "$tr_menu_addresses_prompt")"
 
 		if [ -z "$chosen" ]; then
 			exit 0
@@ -163,17 +164,17 @@ menu_addresses() {
 					exit 0
 				elif [[ "$sure" =~ ^ ]]; then
 					if [ $addresses_list_length -eq 1 ]; then
-						nmcli connection modify id "$connection" ipv${ipv}.gateway ''
-						nmcli connection modify id "$connection" ipv${ipv}.method auto
+						nmcli connection modify uuid "$connection" ipv${ipv}.gateway ''
+						nmcli connection modify uuid "$connection" ipv${ipv}.method auto
 					fi
-					nmcli connection modify id "$connection" -ipv${ipv}.addresses $chosen
+					nmcli connection modify uuid "$connection" -ipv${ipv}.addresses $chosen
 					[ $addresses_list_length -eq 1 ] && break 2
 				fi
 				continue 2
 			fi
 		done
 
-		nmcli connection modify id "$connection" +ipv${ipv}.addresses $chosen
+		nmcli connection modify uuid "$connection" +ipv${ipv}.addresses $chosen
 
 	done
 }
@@ -193,7 +194,7 @@ menu_ip_config() {
 			message="$address_message\n$gateway_message $(nmcli --get-values ipv${ipv}.gateway connection show "$connection")"
 		fi
 
-		chosen="$(echo -e "$autoip_message  $autoip_state\n$message\n" | display_menu 1 "${chosen_connection:3}")"
+		chosen="$(echo -e "$autoip_message  $autoip_state\n$message\n" | display_menu 1 "$chosen_connection")"
 
 		case "$chosen" in
 			'') exit 0 ;;
@@ -207,15 +208,15 @@ menu_ip_config() {
 						elif [[ "$new_addresses" =~ ^ ]]; then
 							continue
 						fi
-						nmcli connection modify id "$connection" ipv${ipv}.addresses "$new_addresses" || continue
+						nmcli connection modify uuid "$connection" ipv${ipv}.addresses "$new_addresses" || continue
 					fi
-					nmcli connection modify id "$connection" ipv${ipv}.method manual
+					nmcli connection modify uuid "$connection" ipv${ipv}.method manual
 				else
-					nmcli connection modify id "$connection" ipv${ipv}.gateway ''
-					nmcli connection modify id "$connection" ipv${ipv}.method auto
+					nmcli connection modify uuid "$connection" ipv${ipv}.gateway ''
+					nmcli connection modify uuid "$connection" ipv${ipv}.method auto
 				fi
 				;;
-			"󰖟"*) [ "$autodns_state" = "" ] && nmcli connection modify id "$connection" ipv${ipv}.ignore-auto-dns yes || nmcli connection modify id "$connection" ipv${ipv}.ignore-auto-dns no ;;
+			"󰖟"*) [ "$autodns_state" = "" ] && nmcli connection modify uuid "$connection" ipv${ipv}.ignore-auto-dns yes || nmcli connection modify uuid "$connection" ipv${ipv}.ignore-auto-dns no ;;
 			"󰀑"*) menu_addresses "$connection" "$ipv" ;;
 			"󰳘"*)
 				new_gateway="$(echo "" | display_menu 1 "$tr_menu_ip_config_gateway_prompt")"
@@ -224,7 +225,7 @@ menu_ip_config() {
 				elif [[ "$new_gateway" =~ ^ ]]; then
 					continue
 				fi
-				nmcli connection modify id "$connection" ipv${ipv}.gateway "$new_gateway"
+				nmcli connection modify uuid "$connection" ipv${ipv}.gateway "$new_gateway"
 				;;
 		esac
 	done
@@ -237,7 +238,7 @@ menu_dns() {
 	declare sure
 	while true; do
 		dns_list=($(nmcli --get-values ipv${ipv}.dns connection show $connection | sed 's/,/ /g'))
-		chosen="$( (IFS=$'\n'; echo -e "${dns_list[*]}${dns_list:+\n}") | display_menu 1 "$tr_menu_dns_prompt")"
+		chosen="$( (for i in "${dns_list[@]}"; do echo "$i"; done; echo "") | display_menu 1 "$tr_menu_dns_prompt")"
 
 		if [ -z "$chosen" ]; then
 			exit 0
@@ -251,13 +252,13 @@ menu_dns() {
 				if [ -z "$sure" ]; then
 					exit 0
 				elif [[ "$sure" =~ ^ ]]; then
-					nmcli connection modify id "$connection" -ipv${ipv}.dns $chosen
+					nmcli connection modify uuid "$connection" -ipv${ipv}.dns $chosen
 				fi
 				continue 2
 			fi
 		done
 
-		nmcli connection modify id "$connection" +ipv${ipv}.dns $chosen
+		nmcli connection modify uuid "$connection" +ipv${ipv}.dns $chosen
 
 	done
 }
@@ -265,15 +266,28 @@ menu_dns() {
 forget_connection() {
 	declare chosen_connection="$1"
 	declare connection="$2"
-	declare sure=$(echo -e "\n" | display_menu 1 "$tr_forget_connection_sure_prompt_1 ${chosen_connection:3}$tr_forget_connection_sure_prompt_2")
+	declare sure="$(echo -e "\n" | display_menu 1 "$tr_forget_connection_sure_prompt_1 ${chosen_connection}$tr_forget_connection_sure_prompt_2")"
 
 	if [ -z "$sure" ]; then
 		exit 0
 	elif [[ "$sure" =~ ^ ]]; then
-		nmcli connection delete id "$connection" && return 0
+		nmcli connection delete uuid "$connection" && return 0
 	fi
 
 	return 1
+}
+
+rename_connection() {
+	declare connection="$1"
+	new_name="$(echo "" | display_menu 1 "$tr_rename_connection_prompt")"
+
+	if [ -z "$new_name" ]; then
+		exit 0
+	elif [[ "$new_name" =~ ^ ]]; then
+		return
+	fi
+
+	nmcli connection modify uuid "$connection" connection.id "$new_name"
 }
 
 menu_connection() {
@@ -282,12 +296,12 @@ menu_connection() {
 	declare autoconnect_state
 	while true; do
 		autoconnect_state="$([ "$(nmcli --get-values connection.autoconnect connection show "$connection")" = "yes" ] && echo "" || echo "")"
-		chosen="$(echo -e "$autoconnect_message  $autoconnect_state\n$ipv4_config_message\n$dns4_message\n$ipv6_config_message\n$dns6_message\n$forget_message\n" | display_menu 1 "${chosen_connection:3}")"
+		chosen="$(echo -e "$autoconnect_message  $autoconnect_state\n$ipv4_config_message\n$dns4_message\n$ipv6_config_message\n$dns6_message\n$forget_message\n" | display_menu 1 "$chosen_connection")"
 
 		case "$chosen" in
 			'') exit 0 ;;
 			""*) return ;;
-			"󱣲"*) [ "$autoconnect_state" = "" ] && nmcli connection modify id "$connection" autoconnect no || nmcli connection modify id "$connection" autoconnect yes ;;
+			"󱣲"*) [ "$autoconnect_state" = "" ] && nmcli connection modify uuid "$connection" autoconnect no || nmcli connection modify uuid "$connection" autoconnect yes ;;
 			"󰎭"*) menu_ip_config "$@" "4" ;;
 			"󰲦"*) menu_dns "$connection" "4" ;;
 			"󰎳"*) menu_ip_config "$@" "6" ;;
@@ -297,23 +311,44 @@ menu_connection() {
 	done
 }
 
-menu_known_connections() {
-	declare -a connections_list
-	declare id_interface connection
+menu_wireguard_connection(){
+	declare chosen_connection="$1"
+	declare connection="$2"
+	declare state autoconnect_state new_name
 	while true; do
-		mapfile -t connections_list < <( echo "$(nmcli --colors no --get-values TYPE,NAME connection show)" | awk -F ':' '$1 == "802-11-wireless" {print $2}' )
+		state="$([ "$(nmcli --get-values GENERAL.STATE connection show "$connection")" = "activated" ] && echo "" || echo "")"
+		autoconnect_state="$([ "$(nmcli --get-values connection.autoconnect connection show "$connection")" = "yes" ] && echo "" || echo "")"
+		chosen="$(echo -e "$wireguard_enable_message  $state\n$autoconnect_message  $autoconnect_state\n$rename_connection_message\n$forget_message\n" | display_menu 1 "$chosen_connection")"
 
-		for (( i = 0; i < ${#connections_list[@]}; i++ )); do
-			id_interface="$(nmcli --get-values connection.interface-name connection show "${connections_list[$i]}")"
-			if [ "$id_interface" != "$interface_to_use" ]; then
-				connections_list[$i]="${connections_list[$i]} ($id_interface)\0${connections_list[$i]}"
-			else
-				connections_list[$i]="${connections_list[$i]}\0${connections_list[$i]}"
-			fi
-			connections_list[$i]="󰑩  ${connections_list[$i]}"
-		done
+		case "$chosen" in
+			'') exit 0 ;;
+			""*) return ;;
+			"󱘖"*) [ "$state" = "" ] && nmcli connection down uuid "$connection" || nmcli connection up uuid "$connection" ;;
+			"󱣲"*) [ "$autoconnect_state" = "" ] && nmcli connection modify uuid "$connection" autoconnect no || nmcli connection modify uuid "$connection" autoconnect yes ;;
+			"󰑕"*) rename_connection "$connection"; [[ "$new_name" =~ ^[^] ]] && chosen_connection="$new_name" ;;
+			""*) forget_connection "$@" && return ;;
+		esac
+	done
+}
 
-		chosen=$( (IFS=$'\n'; echo -e "${connections_list[*]}${connections_list:+\n}") | cut --delimiter=$'\0' --fields=1 | display_menu 1 "$tr_known_connections_message")
+menu_known_connections() {
+	case "$1" in
+		"wifi" | "802-11-wireless")
+			connection_type="802-11-wireless"
+			icon="󰑩"
+			menu_type="menu_connection"
+			;;
+		"wireguard")
+			connection_type="$1"
+			icon="󰌘"
+			menu_type="menu_wireguard_connection"
+			;;
+	esac
+	declare -a profiles_list
+	while true; do
+
+		mapfile -t profiles_list < <(nmcli --colors no --get-values TYPE,UUID,NAME connection show | awk -F ':' -v ct="$connection_type" -v icon="$icon" '$1 == ct {print $2 "\\0" icon "  " $3}')
+		chosen=$( (for i in "${profiles_list[@]}"; do echo -e "$i" | cut --delimiter $'\0' --fields 2; done; echo "") | display_menu 1 "$tr_known_connections_message")
 
 		if [ -z "$chosen" ]; then
 			exit 0
@@ -321,14 +356,13 @@ menu_known_connections() {
 			return
 		fi
 
-		for (( i = 0; i < ${#connections_list[@]}; i++ )); do
-			if [ "$chosen" = "$(echo -e "${connections_list[$i]}" | cut --delimiter=$'\0' --fields=1)" ]; then
-				connection="$(echo -e "${connections_list[$i]}" | cut --delimiter=$'\0' --fields=2)"
+		for i in "${profiles_list[@]}"; do
+			if [ "$chosen" = "$(echo -e "$i" | cut --delimiter $'\0' --fields 2)" ]; then
+				eval "$menu_type \"${chosen:3}\" \"$(echo -e "$i" | cut --delimiter $'\0' --fields 1)\""
 				break
 			fi
 		done
-
-		menu_connection "$chosen" "$connection"
+		
 	done
 }
 
@@ -359,7 +393,7 @@ connect_wifi() {
 	declare wifi_ssid="${1:3}"
 	declare -a connections_matching
 
-	mapfile -t connections_matching < <( echo "$(nmcli --colors no --get-values NAME connection show)" | grep --color=never --word-regexp --fixed-strings "$wifi_ssid" )
+	mapfile -t connections_matching < <(nmcli --colors no --get-values NAME connection show | grep --color=never --word-regexp --fixed-strings "$wifi_ssid" )
 
 	for (( i = 0; i < ${#connections_matching[@]}; i++ )); do
 		if [ $(nmcli --get-values connection.interface-name connection show "${connections_matching[$i]}") = "$interface_to_use" ]; then
@@ -387,13 +421,14 @@ connect_wifi() {
 
 menu_submenu() {
 	while true; do
-		chosen="$(echo -e "$disable_message\n${interfaces[1]:+$interface_message ${interface_to_use}\n}$known_connections_message\n$hidden_message\n" | display_menu 1 "$tr_submenu_message")"
+		chosen="$(echo -e "$disable_message\n${interfaces[1]:+$interface_message ${interface_to_use}\n}$known_connections_message\n${wireguard:+${wireguard_message}\n}$hidden_message\n" | display_menu 1 "$tr_submenu_message")"
 		case "$chosen" in
 			'') exit 0 ;;
 			""*) return ;;
 			"󰖪"*) nmcli radio wifi off ; exit 0 ;;
 			"󰾲"*) select_interface ;;
-			""*) menu_known_connections ;;
+			""*) menu_known_connections "wifi" ;;
+			""*) menu_known_connections "wireguard" ;;
 			"󰛐"*) connect_hidden ;;
 		esac
 	done
@@ -412,7 +447,7 @@ menu_main() {
 			if [ -n "$submenu" ]; then
 				options="$submenu_message"
 			else
-				options="$disable_message\n${interfaces[1]:+$interface_message ${interface_to_use}\n}$known_connections_message\n$hidden_message"
+				options="$disable_message\n${interfaces[1]:+$interface_message ${interface_to_use}\n}$known_connections_message\n${wireguard:+${wireguard_message}\n}$hidden_message"
 			fi
 
 			echo "$tr_scanning_networks"
@@ -459,7 +494,8 @@ menu_main() {
 			"󰖩"*) nmcli radio wifi on ; exit 0 ;;
 			"󰖪"*) nmcli radio wifi off ; exit 0 ;;
 			"󰾲"*) select_interface ;;
-			""*) menu_known_connections ;;
+			""*) menu_known_connections "wifi" ;;
+			""*) menu_known_connections "wireguard" ;;
 			"󰛐"*) connect_hidden ;;
 			*) connect_wifi "$chosen" ;;
 		esac
@@ -475,8 +511,8 @@ tr_scanning_networks_complete="Scanning completed"
 tr_submenu_message="More options"
 tr_disable_message="Disable Wi-Fi"
 tr_enable_message="Enable Wi-Fi"
+tr_interface_message="Interface:"
 tr_known_connections_message="Known connections"
-tr_hidden_message="Connect to a hidden network"
 tr_autoconnect_message="Autoconnect"
 tr_ipv4_config_message="DHCP configuration"
 tr_dns4_message="DNS IPv4"
@@ -487,11 +523,13 @@ tr_autodns_message="Automatic DNS"
 tr_address_message="Addresses"
 tr_gateway_message="Gateway:"
 tr_forget_message="Forget connection"
-tr_interface_message="Interface:"
+tr_wireguard_message="Wireguard connections"
+tr_wireguard_enable_message="Enable VPN"
+tr_rename_connection_message="Rename connection"
+tr_hidden_message="Connect to a hidden network"
 
 tr_main_menu_prompt="Wi-Fi SSID:"
 tr_select_interface_prompt="Interface to use:"
-tr_connect_hidden_prompt="Network name:"
 tr_ask_password_prompt="Password:"
 tr_menu_dns_prompt="New DNS:"
 tr_menu_dns_sure_prompt_1="Remove DNS"
@@ -504,6 +542,8 @@ tr_menu_addresses_sure_prompt_2="?"
 tr_forget_connection_prompt="Connection to forget:"
 tr_forget_connection_sure_prompt_1="Forget"
 tr_forget_connection_sure_prompt_2="?"
+tr_rename_connection_prompt="New name:"
+tr_connect_hidden_prompt="Network name:"
 
 # Detecting Wi-Fi interfaces and add them to the array
 mapfile -t interfaces < <(nmcli --colors no --get-values TYPE,DEVICE device status | awk -F ':' '$1 == "wifi" {print $2}')
@@ -518,6 +558,8 @@ launcher="wofi"
 submenu=
 # Default interface (edit in config file on your risk, if you know your hardware, or use --interface option instead)
 interface_to_use="${interfaces[0]}"
+# Default wireguard menus visibility. Set variable to anything for wireguard support (for editing in config file)
+wireguard=
 
 program_name="$(basename $0)"
 
@@ -529,7 +571,7 @@ submenu_message="  $tr_submenu_message"
 submenu_close_message="  $tr_submenu_close_message"
 disable_message="󰖪  $tr_disable_message"
 enable_message="󰖩  $tr_enable_message"
-hidden_message="󰛐  $tr_hidden_message"
+interface_message="󰾲  $tr_interface_message"
 known_connections_message="  $tr_known_connections_message"
 autoconnect_message="󱣲  $tr_autoconnect_message"
 ipv4_config_message="󰎭  $tr_ipv4_config_message"
@@ -541,7 +583,10 @@ autodns_message="󰖟  $tr_autodns_message"
 address_message="󰀑  $tr_address_message"
 gateway_message="󰳘  $tr_gateway_message"
 forget_message="  $tr_forget_message"
-interface_message="󰾲  $tr_interface_message"
+wireguard_message="  $tr_wireguard_message"
+wireguard_enable_message="󱘖  $tr_wireguard_enable_message"
+rename_connection_message="󰑕  $tr_rename_connection_message"
+hidden_message="󰛐  $tr_hidden_message"
 
 # Options
 while [ -n "$1" ]; do
@@ -549,6 +594,7 @@ while [ -n "$1" ]; do
 		"-h" | "--help") print_usage ;;
 		"-v" | "--version") print_about ;;
 		"-s" | "--submenu") submenu=1 ;;
+		"-S" | "--no-submenu") submenu= ;;
 		"-i" | "--interface")
 			if [ ! $(nmcli --colors no --get-values TYPE,DEVICE device status | awk -F ':' '$1 == "wifi" {print $2}' | grep --word-regexp "$2") ]; then
 				echo "$program_name: Unknown interface given: $2" >&2
@@ -557,6 +603,8 @@ while [ -n "$1" ]; do
 			interface_to_use="$2"
 			shift
 			;;
+		"-w" | "--wireguard") wireguard=1 ;;
+		"-W" | "--no-wireguard") wireguard= ;;
 		"--wofi") launcher="wofi" ;;
 		"--rofi") launcher="rofi" ;;
 		"--wmenu") launcher="wmenu" ;;
