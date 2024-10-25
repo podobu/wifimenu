@@ -59,7 +59,7 @@ This program is licensed under GPL-3.0-or-later.
 
 print_about() {
 	echo -n "\
-wifimenu 2.4.0
+wifimenu 2.4.1
 Copyright © 2024 Jesús Arenas
 Official repository: https://github.com/podobu/wifimenu
 License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
@@ -284,7 +284,7 @@ rename_connection() {
 	if [ -z "$new_name" ]; then
 		exit 0
 	elif [[ "$new_name" =~ ^ ]]; then
-		return
+		return 1
 	fi
 
 	nmcli connection modify uuid "$connection" connection.id "$new_name"
@@ -325,7 +325,7 @@ menu_wireguard_connection(){
 			""*) return ;;
 			"󱘖"*) [ "$state" = "" ] && nmcli connection down uuid "$connection" || nmcli connection up uuid "$connection" ;;
 			"󱣲"*) [ "$autoconnect_state" = "" ] && nmcli connection modify uuid "$connection" autoconnect no || nmcli connection modify uuid "$connection" autoconnect yes ;;
-			"󰑕"*) rename_connection "$connection"; [[ "$new_name" =~ ^[^] ]] && chosen_connection="$new_name" ;;
+			"󰑕"*) rename_connection "$connection" && chosen_connection="$new_name" ;;
 			""*) forget_connection "$@" && return ;;
 		esac
 	done
@@ -358,7 +358,7 @@ menu_known_connections() {
 
 		for i in "${profiles_list[@]}"; do
 			if [ "$chosen" = "$(echo -e "$i" | cut --delimiter $'\0' --fields 2)" ]; then
-				eval "$menu_type \"${chosen:3}\" \"$(echo -e "$i" | cut --delimiter $'\0' --fields 1)\""
+				eval "$menu_type \"$(sed 's/"/\\"/g' <<< "${chosen:3}")\" \"$(echo -e "$i" | cut --delimiter $'\0' --fields 1)\""
 				break
 			fi
 		done
