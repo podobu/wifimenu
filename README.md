@@ -31,8 +31,8 @@ Launcher style in the screenshots above is not include.
 
 ## Considerations
 
-- Does not show WEP Wi-Fi networks, and probably never will
-- When using this script with dmenu launcher, the botton for hide passwords does not work
+- Does not show Wi-Fi networks with WEP security
+- When using this script with dmenu launcher, the botton to hide passwords does not work
 
 ## Dependencies
 
