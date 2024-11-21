@@ -113,6 +113,17 @@ Replace `/PATH/TO/FILE.conf` with the actual path of your *.conf* wireguard file
 
 To learn more about wireguard configuration in NetworkManager, see: <https://blogs.gnome.org/thaller/2019/03/15/wireguard-in-networkmanager/>
 
+## Donations
+
+Monero:
+```txt
+8C7q6JRYpehXAWotiHhrnQ4PuVKnAJZSVQ1pTM8xXXRtUdS9ofAyrLy6chP5SvmKDN2LWvESLME8W897vdQGf4rM4DQchhw
+```
+PayPal:
+```txt
+podopodadobu@gmail.com
+```
+
 ## License
 
 wifimenu is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
