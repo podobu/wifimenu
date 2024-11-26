@@ -26,6 +26,7 @@ Options:
   --interface INTERFACE       Start using Wi-Fi interface INTERFACE.
   -w, --wireguard             Show wireguard connections option.
   -W, --no-wireguard          Do not show wireguard connections option.
+  --no-notify                 Do not send notifications.
 
   --wofi                      Use wofi launcher (default).
   --rofi                      Use rofi launcher.
@@ -59,7 +60,7 @@ This program is licensed under GPL-3.0-or-later.
 
 print_about() {
 	echo -n "\
-wifimenu 2.4.1
+wifimenu 2.5.0
 Copyright © 2024 Jesús Arenas
 Official repository: https://github.com/podobu/wifimenu
 License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
@@ -112,6 +113,25 @@ display_menu() {
 			exit 1
 			;;
 	esac
+}
+
+send_notification() {
+	[ -z "$notifications" ] && return
+	declare specific icon
+	declare summary="$3"
+	declare body="$4"
+	case "$1" in
+		1) specific='connected' ;;
+		2) specific='disconnected' ;;
+		3) specific='error' ;;
+	esac
+	case "$2" in
+		1) icon='network-wireless' ;;
+		2) icon='network-offline' ;;
+		3) icon='network-transmit-receive' ;;
+		4) icon='network-error' ;;
+	esac
+	notify-send --app-name "$program_name" --category "network.$specific" --icon "$icon" --transient "$summary" "$body"
 }
 
 ask_password() {
@@ -323,7 +343,16 @@ menu_wireguard_connection(){
 		case "$chosen" in
 			'') exit 0 ;;
 			""*) return ;;
-			"󱘖"*) [ "$state" = "" ] && nmcli connection down uuid "$connection" || nmcli connection up uuid "$connection" ;;
+			"󱘖"*) [ "$state" = "" ] && {
+					nmcli connection down uuid "$connection" && 
+						send_notification 1 2 "$tr_notice_disconnected_summary" "$tr_notice_disconnected_vpn_body" ||
+						send_notification 3 4 "$tr_notice_error_summary" "$tr_notice_error_vpn_disconnection_body"
+				} || {
+					nmcli connection up uuid "$connection" &&
+						send_notification 1 3 "$tr_notice_connected_summary" "$tr_notice_connected_vpn_body" ||
+						send_notification 3 4 "$tr_notice_error_summary" "$tr_notice_error_vpn_connection_body"
+				}
+				;;
 			"󱣲"*) [ "$autoconnect_state" = "" ] && nmcli connection modify uuid "$connection" autoconnect no || nmcli connection modify uuid "$connection" autoconnect yes ;;
 			"󰑕"*) rename_connection "$connection" && chosen_connection="$new_name" ;;
 			""*) forget_connection "$@" && return ;;
@@ -385,7 +414,9 @@ connect_hidden() {
 		return
 	fi
 
-	nmcli --wait 15 device wifi connect "$wifi_name" hidden yes password "$wifi_password"
+	nmcli --wait 15 device wifi connect "$wifi_name" hidden yes password "$wifi_password" &&
+		send_notification 1 1 "$tr_notice_connected_summary" "$tr_notice_connected_wifi_body" ||
+		send_notification 3 4 "$tr_notice_error_summary" "$tr_notice_error_wifi_connection_body"
 }
 
 connect_wifi() {
@@ -398,9 +429,13 @@ connect_wifi() {
 	for (( i = 0; i < ${#connections_matching[@]}; i++ )); do
 		if [ $(nmcli --get-values connection.interface-name connection show "${connections_matching[$i]}") = "$interface_to_use" ]; then
 			if [[ "$wifi_security" =~ ^ ]]; then
-				nmcli connection down id "${connections_matching[$i]}"
+				nmcli connection down id "${connections_matching[$i]}" &&
+					send_notification 2 1 "$tr_notice_disconnected_summary" "$tr_notice_disconnected_wifi_body" ||
+					send_notification 3 4 "$tr_notice_error_summary" "$tr_notice_error_wifi_disconnection_body"
 			else
-				nmcli --wait 15 connection up id "${connections_matching[$i]}" ifname "$interface_to_use"
+				nmcli --wait 15 connection up id "${connections_matching[$i]}" ifname "$interface_to_use" &&
+					send_notification 1 1 "$tr_notice_connected_summary" "$tr_notice_connected_wifi_body" ||
+					send_notification 3 4 "$tr_notice_error_summary" "$tr_notice_error_wifi_connection_body"
 			fi
 			exit 0
 		fi
@@ -414,7 +449,9 @@ connect_wifi() {
 			return
 		fi
 	fi 
-	nmcli --wait 15 device wifi connect "$wifi_ssid" ifname "$interface_to_use" password "$wifi_password"
+	nmcli --wait 15 device wifi connect "$wifi_ssid" ifname "$interface_to_use" password "$wifi_password" &&
+		send_notification 1 1 "$tr_notice_connected_summary" "$tr_notice_connected_wifi_body" ||
+		send_notification 3 4 "$tr_notice_error_summary" "$tr_notice_error_wifi_connection_body"
 
 	exit 0
 }
@@ -425,7 +462,7 @@ menu_submenu() {
 		case "$chosen" in
 			'') exit 0 ;;
 			""*) return ;;
-			"󰖪"*) nmcli radio wifi off ; exit 0 ;;
+			"󰖪"*) nmcli radio wifi off ; send_notification 1 1 "$tr_notice_disable_wifi_summary" "$tr_notice_disable_wifi_body" ; exit 0 ;;
 			"󰾲"*) select_interface ;;
 			""*) menu_known_connections "wifi" ;;
 			""*) menu_known_connections "wireguard" ;;
@@ -491,8 +528,8 @@ menu_main() {
 		case "$chosen" in
 			'') exit 0 ;;
 			""*) menu_submenu ;;
-			"󰖩"*) nmcli radio wifi on ; exit 0 ;;
-			"󰖪"*) nmcli radio wifi off ; exit 0 ;;
+			"󰖩"*) nmcli radio wifi on ; send_notification 1 1 "$tr_notice_enable_wifi_summary" "$tr_notice_enable_wifi_body" ; exit 0 ;;
+			"󰖪"*) nmcli radio wifi off ; send_notification 1 1 "$tr_notice_disable_wifi_summary" "$tr_notice_disable_wifi_body" ; exit 0 ;;
 			"󰾲"*) select_interface ;;
 			""*) menu_known_connections "wifi" ;;
 			""*) menu_known_connections "wireguard" ;;
@@ -506,44 +543,60 @@ menu_main() {
 ############################################################ MAIN ############################################################
 
 # tr_* variables are for translation or customization (for editing in config file, not here!).
-tr_scanning_networks="Scanning networks"
-tr_scanning_networks_complete="Scanning completed"
-tr_submenu_message="More options"
-tr_disable_message="Disable Wi-Fi"
-tr_enable_message="Enable Wi-Fi"
-tr_interface_message="Interface:"
-tr_known_connections_message="Known connections"
-tr_autoconnect_message="Autoconnect"
-tr_ipv4_config_message="DHCP configuration"
-tr_dns4_message="DNS IPv4"
-tr_ipv6_config_message="IPv6 configuration"
-tr_dns6_message="DNS IPv6"
-tr_autoip_message="Automatic IP configuration"
-tr_autodns_message="Automatic DNS"
-tr_address_message="Addresses"
-tr_gateway_message="Gateway:"
-tr_forget_message="Forget connection"
-tr_wireguard_message="Wireguard connections"
-tr_wireguard_enable_message="Enable VPN"
-tr_rename_connection_message="Rename connection"
-tr_hidden_message="Connect to a hidden network"
+tr_scanning_networks='Scanning networks'
+tr_scanning_networks_complete='Scanning completed'
+tr_submenu_message='More options'
+tr_disable_message='Disable Wi-Fi'
+tr_enable_message='Enable Wi-Fi'
+tr_interface_message='Interface:'
+tr_known_connections_message='Known connections'
+tr_autoconnect_message='Autoconnect'
+tr_ipv4_config_message='DHCP configuration'
+tr_dns4_message='DNS IPv4'
+tr_ipv6_config_message='IPv6 configuration'
+tr_dns6_message='DNS IPv6'
+tr_autoip_message='Automatic IP configuration'
+tr_autodns_message='Automatic DNS'
+tr_address_message='Addresses'
+tr_gateway_message='Gateway:'
+tr_forget_message='Forget connection'
+tr_wireguard_message='Wireguard connections'
+tr_wireguard_enable_message='Enable VPN'
+tr_rename_connection_message='Rename connection'
+tr_hidden_message='Connect to a hidden network'
 
-tr_main_menu_prompt="Wi-Fi SSID:"
-tr_select_interface_prompt="Interface to use:"
-tr_ask_password_prompt="Password:"
-tr_menu_dns_prompt="New DNS:"
-tr_menu_dns_sure_prompt_1="Remove DNS"
-tr_menu_dns_sure_prompt_2="?"
-tr_menu_ip_config_addresses_prompt="address1/mask,address2/mask,..."
-tr_menu_ip_config_gateway_prompt="New gateway:"
-tr_menu_addresses_prompt="New address:"
-tr_menu_addresses_sure_prompt_1="Remove address"
-tr_menu_addresses_sure_prompt_2="?"
-tr_forget_connection_prompt="Connection to forget:"
-tr_forget_connection_sure_prompt_1="Forget"
-tr_forget_connection_sure_prompt_2="?"
-tr_rename_connection_prompt="New name:"
-tr_connect_hidden_prompt="Network name:"
+tr_main_menu_prompt='Wi-Fi SSID:'
+tr_select_interface_prompt='Interface to use:'
+tr_ask_password_prompt='Password:'
+tr_menu_dns_prompt='New DNS:'
+tr_menu_dns_sure_prompt_1='Remove DNS'
+tr_menu_dns_sure_prompt_2='?'
+tr_menu_ip_config_addresses_prompt='address1/mask,address2/mask,...'
+tr_menu_ip_config_gateway_prompt='New gateway:'
+tr_menu_addresses_prompt='New address:'
+tr_menu_addresses_sure_prompt_1='Remove address'
+tr_menu_addresses_sure_prompt_2='?'
+tr_forget_connection_prompt='Connection to forget:'
+tr_forget_connection_sure_prompt_1='Forget'
+tr_forget_connection_sure_prompt_2='?'
+tr_rename_connection_prompt='New name:'
+tr_connect_hidden_prompt='Network name:'
+
+tr_notice_connected_summary='Connected to network'
+tr_notice_disconnected_summary='Disconnected from network'
+tr_notice_error_summary='Connection error'
+tr_notice_enable_wifi_summary='Wi-Fi enabled'
+tr_notice_disable_wifi_summary='Wi-Fi disabled'
+tr_notice_connected_wifi_body='Successful connection to Wi-Fi network'
+tr_notice_disconnected_wifi_body='Successful disconnection from Wi-Fi network'
+tr_notice_error_wifi_connection_body='An error occurred while trying to connect to the Wi-Fi network'
+tr_notice_error_wifi_disconnection_body='An error occurred while trying to disconnect to the Wi-Fi network'
+tr_notice_connected_vpn_body='Successful connection to VPN'
+tr_notice_disconnected_vpn_body='Successful disconnection from VPN'
+tr_notice_error_vpn_connection_body='An error occurred while trying to connect to the VPN'
+tr_notice_error_vpn_disconnection_body='An error occurred while trying to disconnect to the VPN'
+tr_notice_enable_wifi_body='Wi-Fi was successfully enabled'
+tr_notice_disable_wifi_body='Wi-Fi was successfully disabled'
 
 # Detecting Wi-Fi interfaces and add them to the array
 mapfile -t interfaces < <(nmcli --colors no --get-values TYPE,DEVICE device status | awk -F ':' '$1 == "wifi" {print $2}')
@@ -560,6 +613,8 @@ submenu=
 interface_to_use="${interfaces[0]}"
 # Default wireguard menus visibility. Set variable to anything for wireguard support (for editing in config file)
 wireguard=
+# Default is to check if notify-send is installed and, if it is, enable notifications
+notifications=$(command -v notify-send &> /dev/null && echo 1)
 
 program_name="$(basename $0)"
 
@@ -591,11 +646,11 @@ hidden_message="󰛐  $tr_hidden_message"
 # Options
 while [ -n "$1" ]; do
 	case "$1" in
-		"-h" | "--help") print_usage ;;
-		"-v" | "--version") print_about ;;
-		"-s" | "--submenu") submenu=1 ;;
-		"-S" | "--no-submenu") submenu= ;;
-		"-i" | "--interface")
+		'-h' | '--help') print_usage ;;
+		'-v' | '--version') print_about ;;
+		'-s' | '--submenu') submenu=1 ;;
+		'-S' | '--no-submenu') submenu= ;;
+		'-i' | '--interface')
 			if [ ! $(nmcli --colors no --get-values TYPE,DEVICE device status | awk -F ':' '$1 == "wifi" {print $2}' | grep --word-regexp "$2") ]; then
 				echo "$program_name: Unknown interface given: $2" >&2
 				exit 2
@@ -603,13 +658,14 @@ while [ -n "$1" ]; do
 			interface_to_use="$2"
 			shift
 			;;
-		"-w" | "--wireguard") wireguard=1 ;;
-		"-W" | "--no-wireguard") wireguard= ;;
-		"--wofi") launcher="wofi" ;;
-		"--rofi") launcher="rofi" ;;
-		"--wmenu") launcher="wmenu" ;;
-		"--dmenu") launcher="dmenu" ;;
-		"--bemenu") launcher="bemenu" ;;
+		'-w' | '--wireguard') wireguard=1 ;;
+		'-W' | '--no-wireguard') wireguard= ;;
+		'--no-notify') notifications= ;;
+		'--wofi') launcher='wofi' ;;
+		'--rofi') launcher='rofi' ;;
+		'--wmenu') launcher='wmenu' ;;
+		'--dmenu') launcher='dmenu' ;;
+		'--bemenu') launcher='bemenu' ;;
 		*) echo "$program_name: Wrong option given. See usage with -h or --help." >&2 ; exit 1 ;;
 	esac
 	shift

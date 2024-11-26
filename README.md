@@ -21,6 +21,7 @@ Launcher style in the screenshots above is not include.
 - Shows if Wi-Fi network is secure via WPA 1/2
 - Shows signal level visually
 - A submenu to contain all of the above options
+- Desktop notifications via notify-send
 - Translate to your language by modifying script variables in a configuration file
 - Can be use with your preferred launcher:
 	- wofi
@@ -40,6 +41,7 @@ Launcher style in the screenshots above is not include.
 - NetworkManager
 - At least one of the following launchers: wofi, rofi, wmenu, dmenu, bemenu
 - It uses heavily Nerd Fonts characters. [Download a font](https://www.nerdfonts.com/) or change the characters at your own risk
+- libnotify (optional)
 
 ## Translation and customization
 
@@ -59,6 +61,7 @@ Some variables of interest may be:
 - **launcher**: A string defining the launcher.
 - **submenu**: If set, shows Wi-Fi options in a submenu.
 - **wireguard**: If set, shows wireguard connections option in the main manu.
+- **notifications**: If set, sends desktop notifications.
 
 The following variables can be changed in the the configuration file to translate the text:
 
@@ -101,6 +104,22 @@ tr_forget_connection_sure_prompt_1="Forget"
 tr_forget_connection_sure_prompt_2="?"
 tr_rename_connection_prompt="New name:"
 tr_connect_hidden_prompt="Network name:"
+
+tr_notice_connected_summary='Connected to network'
+tr_notice_disconnected_summary='Disconnected from network'
+tr_notice_error_summary='Connection error'
+tr_notice_enable_wifi_summary='Wi-Fi enabled'
+tr_notice_disable_wifi_summary='Wi-Fi disabled'
+tr_notice_connected_wifi_body='Successful connection to Wi-Fi network'
+tr_notice_disconnected_wifi_body='Successful disconnection from Wi-Fi network'
+tr_notice_error_wifi_connection_body='An error occurred while trying to connect to the Wi-Fi network'
+tr_notice_error_wifi_disconnection_body='An error occurred while trying to disconnect to the Wi-Fi network'
+tr_notice_connected_vpn_body='Successful connection to VPN'
+tr_notice_disconnected_vpn_body='Successful disconnection from VPN'
+tr_notice_error_vpn_connection_body='An error occurred while trying to connect to the VPN'
+tr_notice_error_vpn_disconnection_body='An error occurred while trying to disconnect to the VPN'
+tr_notice_enable_wifi_body='Wi-Fi was successfully enabled'
+tr_notice_disable_wifi_body='Wi-Fi was successfully disabled'
 ```
 
 ## Wireguard support
