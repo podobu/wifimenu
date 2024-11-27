@@ -58,52 +58,65 @@ Command line options overwrite this file.
 
 Some variables of interest may be:
 
-- **launcher**: A string defining the launcher.
-- **submenu**: If set, shows Wi-Fi options in a submenu.
-- **wireguard**: If set, shows wireguard connections option in the main manu.
-- **notifications**: If set, sends desktop notifications.
+- **launcher**: A string defining the launcher (default is 'wofi'). The possible values are:
+	- wofi
+	- rofi
+	- wmenu
+	- dmenu
+	- bemenu
+- **submenu**: If set, shows Wi-Fi options in a submenu (unset by default).
+- **wireguard**: If set, shows wireguard connections option in the main manu (unset by default).
+- **notifications**: If set, sends desktop notifications (if notify-send can be found by the user's PATH, then it is set).
+
+That a variable is set means that it has a value assigned to it (any value). For example:
+
+```sh
+launcher='rofi'    # It's set
+submenu=1          # It's set
+wireguard=         # It's not set
+```
 
 The following variables can be changed in the the configuration file to translate the text:
 
-```bash
-tr_scanning_networks="Scanning networks"
-tr_scanning_networks_complete="Scanning completed"
-tr_submenu_message="More options"
-tr_disable_message="Disable Wi-Fi"
-tr_enable_message="Enable Wi-Fi"
-tr_interface_message="Interface:"
-tr_known_connections_message="Known connections"
-tr_autoconnect_message="Autoconnect"
-tr_ipv4_config_message="DHCP configuration"
-tr_dns4_message="DNS IPv4"
-tr_ipv6_config_message="IPv6 configuration"
-tr_dns6_message="DNS IPv6"
-tr_autoip_message="Automatic IP configuration"
-tr_autodns_message="Automatic DNS"
-tr_address_message="Addresses"
-tr_gateway_message="Gateway:"
-tr_forget_message="Forget connection"
-tr_wireguard_message="Wireguard connections"
-tr_wireguard_enable_message="Enable VPN"
-tr_rename_connection_message="Rename connection"
-tr_hidden_message="Connect to a hidden network"
+```sh
+tr_scanning_networks='Scanning networks'
+tr_scanning_networks_complete='Scanning completed'
+tr_submenu_message='More options'
+tr_disable_message='Disable Wi-Fi'
+tr_enable_message='Enable Wi-Fi'
+tr_interface_message='Interface:'
+tr_known_connections_message='Known connections'
+tr_autoconnect_message='Autoconnect'
+tr_ipv4_config_message='DHCP configuration'
+tr_dns4_message='DNS IPv4'
+tr_ipv6_config_message='IPv6 configuration'
+tr_dns6_message='DNS IPv6'
+tr_autoip_message='Automatic IP configuration'
+tr_autodns_message='Automatic DNS'
+tr_address_message='Addresses'
+tr_gateway_message='Gateway:'
+tr_forget_message='Forget connection'
+tr_wireguard_message='Wireguard connections'
+tr_wireguard_enable_message='Enable VPN'
+tr_rename_connection_message='Rename connection'
+tr_hidden_message='Connect to a hidden network'
 
-tr_main_menu_prompt="Wi-Fi SSID:"
-tr_select_interface_prompt="Interface to use:"
-tr_ask_password_prompt="Password:"
-tr_menu_dns_prompt="New DNS:"
-tr_menu_dns_sure_prompt_1="Remove DNS"
-tr_menu_dns_sure_prompt_2="?"
-tr_menu_ip_config_addresses_prompt="address1/mask,address2/mask,..."
-tr_menu_ip_config_gateway_prompt="New gateway:"
-tr_menu_addresses_prompt="New address:"
-tr_menu_addresses_sure_prompt_1="Remove address"
-tr_menu_addresses_sure_prompt_2="?"
-tr_forget_connection_prompt="Connection to forget:"
-tr_forget_connection_sure_prompt_1="Forget"
-tr_forget_connection_sure_prompt_2="?"
-tr_rename_connection_prompt="New name:"
-tr_connect_hidden_prompt="Network name:"
+tr_main_menu_prompt='Wi-Fi SSID:'
+tr_select_interface_prompt='Interface to use:'
+tr_ask_password_prompt='Password:'
+tr_menu_dns_prompt='New DNS:'
+tr_menu_dns_sure_prompt_1='Remove DNS'
+tr_menu_dns_sure_prompt_2='?'
+tr_menu_ip_config_addresses_prompt='address1/CIDR_mask,address2/CIDR_mask,...'
+tr_menu_ip_config_gateway_prompt='New gateway:'
+tr_menu_addresses_prompt='New address:'
+tr_menu_addresses_sure_prompt_1='Remove address'
+tr_menu_addresses_sure_prompt_2='?'
+tr_forget_connection_prompt='Connection to forget:'
+tr_forget_connection_sure_prompt_1='Forget'
+tr_forget_connection_sure_prompt_2='?'
+tr_rename_connection_prompt='New name:'
+tr_connect_hidden_prompt='Network name:'
 
 tr_notice_connected_summary='Connected to network'
 tr_notice_disconnected_summary='Disconnected from network'

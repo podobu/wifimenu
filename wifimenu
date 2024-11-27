@@ -51,6 +51,7 @@ Exit status:
   Returns 1 if a wrong option is given.
   Returns 2 if no Wi-Fi interface is detected with nmcli.
             if an unknown interface is given with -i.
+  Returns 3 if the launcher selected is not installed.
   Returns 0 otherwise.
 
 This program is licensed under GPL-3.0-or-later.
@@ -60,7 +61,7 @@ This program is licensed under GPL-3.0-or-later.
 
 print_about() {
 	echo -n "\
-wifimenu 2.5.0
+wifimenu 2.5.1
 Copyright © 2024 Jesús Arenas
 Official repository: https://github.com/podobu/wifimenu
 License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
@@ -120,11 +121,13 @@ send_notification() {
 	declare specific icon
 	declare summary="$3"
 	declare body="$4"
+	# Notification category format specified by freedesktop.org
 	case "$1" in
 		1) specific='connected' ;;
 		2) specific='disconnected' ;;
 		3) specific='error' ;;
 	esac
+	# Icon naming format specified by freedesktop.org
 	case "$2" in
 		1) icon='network-wireless' ;;
 		2) icon='network-offline' ;;
@@ -571,7 +574,7 @@ tr_ask_password_prompt='Password:'
 tr_menu_dns_prompt='New DNS:'
 tr_menu_dns_sure_prompt_1='Remove DNS'
 tr_menu_dns_sure_prompt_2='?'
-tr_menu_ip_config_addresses_prompt='address1/mask,address2/mask,...'
+tr_menu_ip_config_addresses_prompt='address1/CIDR_mask,address2/CIDR_mask,...'
 tr_menu_ip_config_gateway_prompt='New gateway:'
 tr_menu_addresses_prompt='New address:'
 tr_menu_addresses_sure_prompt_1='Remove address'
@@ -606,7 +609,7 @@ if [ -z "${interfaces[0]}" ]; then
 fi
 
 # Default launcher (for editing in config file)
-launcher="wofi"
+launcher='wofi'
 # Default menu display. Set variable to anything for submenu options (for editing in config file)
 submenu=
 # Default interface (edit in config file on your risk, if you know your hardware, or use --interface option instead)
@@ -618,9 +621,9 @@ notifications=$(command -v notify-send &> /dev/null && echo 1)
 
 program_name="$(basename $0)"
 
-{ [ -f "${XDG_CONFIG_HOME}/${program_name}/config" ] && . "${XDG_CONFIG_HOME}/${program_name}/config"; } || \
-{ [ -f "${HOME}/.config/${program_name}/config" ] && . "${HOME}/.config/${program_name}/config"; } || \
-{ [ -f "${HOME}/.${program_name}" ] && . "${HOME}/.${program_name}"; }
+{ [ -n "$XDG_CONFIG_HOME" ] && [ -f "${XDG_CONFIG_HOME}/${program_name}/config" ] && . "${XDG_CONFIG_HOME}/${program_name}/config"; } ||
+	{ [ -f "${HOME}/.config/${program_name}/config" ] && . "${HOME}/.config/${program_name}/config"; } ||
+	{ [ -f "${HOME}/.${program_name}" ] && . "${HOME}/.${program_name}"; }
 
 submenu_message="  $tr_submenu_message"
 submenu_close_message="  $tr_submenu_close_message"
@@ -670,5 +673,10 @@ while [ -n "$1" ]; do
 	esac
 	shift
 done
+
+command -v $launcher &> /dev/null || {
+	echo "$program_name: The launcher selected is not installed: $launcher. See usage with -h or --help." >&2
+	exit 3
+}
 
 menu_main
