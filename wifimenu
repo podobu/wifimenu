@@ -33,6 +33,7 @@ Options:
   --wmenu                     Use wmenu launcher.
   --dmenu                     Use dmenu launcher.
   --bemenu                    Use bemenu launcher.
+  --walker                    Use walker launcher.
 
   -h, --help                  Print this help and exit.
   -v, --version               Print version and other info and exit.
@@ -42,7 +43,7 @@ https://www.nerdfonts.com/
 
 Dependencies: 
   - NetworkManager.
-  - At least one launcher of: wofi, rofi, wmenu, dmenu, bemenu.
+  - At least one launcher of: wofi, rofi, wmenu, dmenu, bemenu, walker.
 
 About dmenu: 
   Hide password button does not work, since dmenu does not support this.
@@ -109,6 +110,13 @@ display_menu() {
 				3) bemenu --list 10 --password "indicator" --prompt "$prompt" ;;
 			esac
 			;;
+                "walker")
+                        case $form in
+                                1) walker --dmenu -k --placeholder "$prompt" ;;
+                                2) walker --dmenu -f --placeholder "$prompt" ;;
+                                3) walker --password --placeholder "$prompt" ;;
+                        esac
+                        ;;
 		*)
 			echo "$program_name: Unknown launcher. See variable 'launcher'." >&2
 			exit 1
@@ -669,6 +677,7 @@ while [ -n "$1" ]; do
 		'--wmenu') launcher='wmenu' ;;
 		'--dmenu') launcher='dmenu' ;;
 		'--bemenu') launcher='bemenu' ;;
+                '--walker') launcher='walker' ;;
 		*) echo "$program_name: Wrong option given. See usage with -h or --help." >&2 ; exit 1 ;;
 	esac
 	shift

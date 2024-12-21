@@ -29,6 +29,7 @@ Launcher style in the screenshots above is not include.
 	- wmenu
 	- dmenu
 	- bemenu
+	- walker
 
 ## Considerations
 
@@ -39,7 +40,7 @@ Launcher style in the screenshots above is not include.
 
 - Bash (but I'm not sure, or am I?)
 - NetworkManager
-- At least one of the following launchers: wofi, rofi, wmenu, dmenu, bemenu
+- At least one of the following launchers: wofi, rofi, wmenu, dmenu, bemenu, walker
 - It uses heavily Nerd Fonts characters. [Download a font](https://www.nerdfonts.com/) or change the characters at your own risk
 - libnotify (optional)
 
@@ -64,6 +65,7 @@ Some variables of interest may be:
 	- wmenu
 	- dmenu
 	- bemenu
+	- walker
 - **submenu**: If set, shows Wi-Fi options in a submenu (unset by default).
 - **wireguard**: If set, shows wireguard connections option in the main manu (unset by default).
 - **notifications**: If set, sends desktop notifications (if notify-send can be found by the user's PATH, then it is set).
