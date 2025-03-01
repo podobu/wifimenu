@@ -70,7 +70,7 @@ This program is licensed under GPL-3.0-or-later.
 
 print_about() {
 	echo -n "\
-wifimenu 2.7.0
+wifimenu 2.7.1
 Copyright © 2024 Jesús Arenas
 Official repository: https://github.com/podobu/wifimenu
 License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
@@ -156,7 +156,7 @@ send_notification() {
 ask_password() {
 	declare middle_option=${1:-}
 	declare wifi_password="$icon_eye"
-	until [[ -z "$wifi_password" || "$wifi_password" =~ ^[^${icon_eye_closed}${icon_eye}] ]]; do
+	until [[ -z "$wifi_password" || "$wifi_password" == !(${icon_eye_closed}*|${icon_eye}*) ]]; do
 		if [[ "$wifi_password" =~ ^$icon_eye_closed ]]; then
 			wifi_password=$(echo -e "$icon_eye${middle_option}\n$icon_close" | display_menu 3 "$tr_ask_password_prompt")
 		else
@@ -439,8 +439,8 @@ connect_hidden() {
 }
 
 connect_wifi() {
-	declare wifi_security="${1:0:1}"
-	declare wifi_ssid="${1:3}"
+	declare wifi_security="${1:0:${#icon_wifi_1}}"
+	declare wifi_ssid="${1#*  }"
 	declare -a connections_matching
 
 	mapfile -t connections_matching < <(nmcli --colors no --get-values NAME connection show | grep --color=never --word-regexp --fixed-strings "$wifi_ssid" )
@@ -460,7 +460,7 @@ connect_wifi() {
 		fi
 	done
 
-	if [[ "$wifi_security" =~ ^[${icon_wifi_1}${icon_wifi_2}${icon_wifi_3}] ]]; then
+	if [[ "$wifi_security" =~ ^(${icon_wifi_1}|${icon_wifi_2}|${icon_wifi_3}) ]]; then
 		declare wifi_password=$(ask_password)
 		if [ -z "$wifi_password" ]; then
 			exit 0
