@@ -29,6 +29,7 @@ Launcher style in the screenshots above is not include.
 	- wmenu
 	- dmenu
 	- bemenu
+	- Or a custom one!
 
 ## Considerations
 
@@ -39,7 +40,7 @@ Launcher style in the screenshots above is not include.
 
 - Bash (but I'm not sure, or am I?)
 - NetworkManager
-- At least one of the following launchers: wofi, rofi, wmenu, dmenu, bemenu
+- A menu launcher
 - It uses heavily Nerd Fonts characters. [Download a font](https://www.nerdfonts.com/) or change the characters at your own risk
 - libnotify (optional)
 
@@ -64,6 +65,12 @@ Some variables of interest may be:
 	- wmenu
 	- dmenu
 	- bemenu
+	- custom
+- **custom_opts**: It's an asosiative array with 4 values that must be set when `launcher` variable is set to 'custom'.
+	- **custom_opts[launcher]**: Launcher command or path.
+	- **custom_opts[insensitive]**: Launcher options for case-insensitive input.
+	- **custom_opts[sensitive]**: Launcer options for case-sensitive input.
+	- **custom_opts[password]**: Launcher options for password-prompt mode.
 - **submenu**: If set, shows Wi-Fi options in a submenu (unset by default).
 - **wireguard**: If set, shows wireguard connections option in the main manu (unset by default).
 - **notifications**: If set, sends desktop notifications (if notify-send can be found by the user's PATH, then it is set).
@@ -75,6 +82,21 @@ launcher='rofi'    # It's set
 submenu=1          # It's set
 wireguard=         # It's not set
 ```
+
+The custom launcher options must be given with the corresponding dashes.
+
+```sh
+# In config file
+custom_opts[launcher]='wofi'
+custom_opts[insensitive]='--dmenu --insensitive --prompt'
+custom_opts[sensitive]='-d -p'
+custom_opts[password]='--dmenu --password -p'
+
+# In command line
+--custom wofi '--dmenu --insensitive --prompt' '-d -p' '-d --password --prompt'
+```
+
+If your launcher don't support password prompt, just set it case-sensitive.
 
 The following variables can be changed in the the configuration file to translate the text:
 

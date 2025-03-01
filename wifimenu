@@ -33,6 +33,9 @@ Options:
   --wmenu                     Use wmenu launcher.
   --dmenu                     Use dmenu launcher.
   --bemenu                    Use bemenu launcher.
+  --custom LAUNCHER 1 2 3     Use a custom launcher with options for
+                              case-insensitive (1), case-sensitive (2)
+                              and password-prompt (3) input.
 
   -h, --help                  Print this help and exit.
   -v, --version               Print version and other info and exit.
@@ -42,7 +45,7 @@ https://www.nerdfonts.com/
 
 Dependencies: 
   - NetworkManager.
-  - At least one launcher of: wofi, rofi, wmenu, dmenu, bemenu.
+  - A menu launcher.
 
 About dmenu: 
   Hide password button does not work, since dmenu does not support this.
@@ -52,6 +55,7 @@ Exit status:
   Returns 2 if no Wi-Fi interface is detected with nmcli.
             if an unknown interface is given with -i.
   Returns 3 if the launcher selected is not installed.
+  Returns 4 if custom launcher options are not completely defined.
   Returns 0 otherwise.
 
 This program is licensed under GPL-3.0-or-later.
@@ -61,7 +65,7 @@ This program is licensed under GPL-3.0-or-later.
 
 print_about() {
 	echo -n "\
-wifimenu 2.5.1
+wifimenu 2.6.0
 Copyright © 2024 Jesús Arenas
 Official repository: https://github.com/podobu/wifimenu
 License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
@@ -74,39 +78,46 @@ display_menu() {
 	declare prompt="$2"
 	
 	case "$launcher" in
-		"wofi")
+		'wofi')
 			case $form in
 				1) wofi --dmenu --insensitive --prompt "$prompt" ;;
 				2) wofi --dmenu --prompt "$prompt" ;;
 				3) wofi --dmenu --password --prompt "$prompt" ;;
 			esac
 			;;
-		"rofi")
+		'rofi')
 			case $form in
 				1) rofi -dmenu -i -p "$prompt" ;;
 				2) rofi -dmenu -p "$prompt" ;;
 				3) rofi -dmenu -password -p "$prompt" ;;
 			esac
 			;;
-		"wmenu")
+		'wmenu')
 			case $form in
 				1) wmenu -l 10 -i -p "$prompt" ;;
 				2) wmenu -l 10 -p "$prompt" ;;
 				3) wmenu -l 10 -P -p "$prompt" ;;
 			esac
 			;;
-		"dmenu")
+		'dmenu')
 			case $form in
 				1) dmenu -l 10 -i -p "$prompt" ;;
 				2) dmenu -l 10 -p "$prompt" ;;
 				3) dmenu -l 10 -p "$prompt" ;; # Cannot hide the password
 			esac
 			;;
-		"bemenu")
+		'bemenu')
 			case $form in
 				1) bemenu --list 10 --ignorecase --prompt "$prompt" ;;
 				2) bemenu --list 10 --prompt "$prompt" ;;
 				3) bemenu --list 10 --password "indicator" --prompt "$prompt" ;;
+			esac
+			;;
+		'custom')
+			case $form in
+				1) "${custom_opts[launcher]}" ${custom_opts[insensitive]} "$prompt" ;;
+				2) "${custom_opts[launcher]}" ${custom_opts[sensitive]} "$prompt" ;;
+				3) "${custom_opts[launcher]}" ${custom_opts[password]} "$prompt" ;;
 			esac
 			;;
 		*)
@@ -610,6 +621,8 @@ fi
 
 # Default launcher (for editing in config file)
 launcher='wofi'
+# Custom launcher options
+declare -A custom_opts
 # Default menu display. Set variable to anything for submenu options (for editing in config file)
 submenu=
 # Default interface (edit in config file on your risk, if you know your hardware, or use --interface option instead)
@@ -669,12 +682,30 @@ while [ -n "$1" ]; do
 		'--wmenu') launcher='wmenu' ;;
 		'--dmenu') launcher='dmenu' ;;
 		'--bemenu') launcher='bemenu' ;;
+		'--custom')
+			launcher='custom'
+			custom_opts[launcher]="$2"
+			custom_opts[insensitive]="$3"
+			custom_opts[sensitive]="$4"
+			custom_opts[password]="$5"
+			shift 4
+			;;
 		*) echo "$program_name: Wrong option given. See usage with -h or --help." >&2 ; exit 1 ;;
 	esac
 	shift
 done
 
-command -v $launcher &> /dev/null || {
+if [ "$launcher" = 'custom' ]; then
+	[ -n "${custom_opts[launcher]}" ] &&
+	[ -n "${custom_opts[insensitive]}" ] &&
+	[ -n "${custom_opts[sensitive]}" ] &&
+	[ -n "${custom_opts[password]}" ] || {
+	echo "$program_name: Custom launcher options not defined. See usage with -h or --help." >&2
+	exit 4
+}
+fi
+
+command -v ${custom_opts[launcher]:-$launcher} &> /dev/null || {
 	echo "$program_name: The launcher selected is not installed: $launcher. See usage with -h or --help." >&2
 	exit 3
 }
