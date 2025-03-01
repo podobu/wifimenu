@@ -6,7 +6,7 @@ A Bash script to connect to a Wi-Fi network using NetworkManager and a launcher.
 ![img-networks2.png](./Previews/img-networks2.png)
 ![img-enable.png](./Previews/img-enable.png)
 ![img-more.png](./Previews/img-more.png)
-![img-submenu.png](./Previews/img-submenu.png)
+![img-emoji.png](./Previews/img-emoji.png)
 
 Launcher style in the screenshots above is not include.
 
@@ -38,13 +38,20 @@ Launcher style in the screenshots above is not include.
 
 ## Dependencies
 
-- Bash (but I'm not sure, or am I?)
+### Required
+
+- Bash (wifimenu was developed for Bash 5. I don't know if it works on previous versions or with other shells)
 - NetworkManager
 - A menu launcher
-- It uses heavily Nerd Fonts characters. [Download a font](https://www.nerdfonts.com/) or change the characters at your own risk
+- A [Nerd Fonts](https://www.nerdfonts.com/) font or a font that support emojis
+
+### Optional
+
 - libnotify (optional)
 
 ## Translation and customization
+
+### Configuration file location
 
 The following files are sourced in the corresponding order. If one of the files is found, the following files will not be searched:
 
@@ -56,6 +63,8 @@ The variable `program_name` is set to `basename $0`.
 
 Any modification of the program can be made in the configuration file to avoid losing modifications when updating the script.
 Command line options overwrite this file.
+
+### Variables for configuration file
 
 Some variables of interest may be:
 
@@ -72,6 +81,7 @@ Some variables of interest may be:
 	- **custom_opts[sensitive]**: Launcer options for case-sensitive input.
 	- **custom_opts[password]**: Launcher options for password-prompt mode.
 - **submenu**: If set, shows Wi-Fi options in a submenu (unset by default).
+- **emoji**: If set, shows emoji icons instead of Nerd Fonts icons.
 - **wireguard**: If set, shows wireguard connections option in the main manu (unset by default).
 - **notifications**: If set, sends desktop notifications (if notify-send can be found by the user's PATH, then it is set).
 
@@ -83,6 +93,8 @@ submenu=1          # It's set
 wireguard=         # It's not set
 ```
 
+### Custom launcher syntax
+
 The custom launcher options must be given with the corresponding dashes.
 
 ```sh
@@ -92,11 +104,69 @@ custom_opts[insensitive]='--dmenu --insensitive --prompt'
 custom_opts[sensitive]='-d -p'
 custom_opts[password]='--dmenu --password -p'
 
+# or
+
 # In command line
---custom wofi '--dmenu --insensitive --prompt' '-d -p' '-d --password --prompt'
+wifimenu --custom wofi '--dmenu --insensitive --prompt' '-d -p' '-d --password --prompt'
 ```
 
 If your launcher don't support password prompt, just set it case-sensitive.
+
+### Icons
+
+By default Nerd Fonts icons are use. If you don't want to use a Nerd Fonts font, emojis can be use for icons.
+
+```sh
+# In config file
+emoji=1
+
+# or
+
+# In command line
+wifimenu --emoji
+```
+
+Each icon can be customized in the configuration file setting the following variables:
+
+```sh
+icon_dragon=
+icon_config=
+icon_close=
+icon_check=
+icon_eye=
+icon_eye_closed=
+icon_saved=
+icon_automatic=
+icon_wifi_enable=
+icon_wifi_disable=
+icon_wifi_1=
+icon_wifi_2=
+icon_wifi_3=
+icon_wifi_4=
+icon_wifi_5=
+icon_wifi_6=
+icon_interface=
+icon_4_1=
+icon_4_2=
+icon_6_1=
+icon_6_2=
+icon_plug=
+icon_trash=
+icon_pen=
+icon_wireless=
+icon_net_1=
+icon_net_2=
+icon_net_3=
+icon_net_4=
+icon_net_5=
+icon_unlock=
+icon_on=
+icon_off=
+```
+
+Which icon does each variable belong to? Find out on your own, to much documentation.
+
+### Translation
 
 The following variables can be changed in the the configuration file to translate the text:
 
