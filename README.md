@@ -110,6 +110,8 @@ custom_opts[password]='--dmenu --password -p'
 wifimenu --custom wofi '--dmenu --insensitive --prompt' '-d -p' '-d --password --prompt'
 ```
 
+Note that the last flag must be the one to set the prompt.
+
 If your launcher don't support password prompt, just set it case-sensitive.
 
 ### Icons
@@ -165,6 +167,9 @@ icon_off=
 ```
 
 Which icon does each variable belong to? Find out on your own, to much documentation.
+
+If you customize the icons, it's better to set just one character (UTF-8 is fine) for each one,
+as it could have unexpected behavior otherwise, or not, it is just not tested.
 
 ### Translation
 
